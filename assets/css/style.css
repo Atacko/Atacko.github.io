@@ -69,6 +69,8 @@
     align-items: flex-start;
     gap: 10px;
     width: 100px; /* Width for the icon column */
+    max-height: 100vh;
+    flex-wrap: wrap;
   }
   
   .desktop-icon {
