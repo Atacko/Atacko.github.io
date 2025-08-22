@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Space Invaders</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="game-container">
+        <div class="game-header">
+            <div class="score-display">
+                <span>SCORE: <span id="score">0000</span></span>
+                <span>HI-SCORE: <span id="hiScore">0000</span></span>
+            </div>
+            <div class="lives-display">
+                <span>LIVES: </span>
+                <div id="lives-container"></div>
+            </div>
+            <div class="level-display">
+                <span>LEVEL: <span id="level">1</span></span>
+            </div>
+        </div>
+        
+        <canvas id="gameCanvas" width="800" height="600"></canvas>
+        
+        <div class="game-overlay" id="gameOverlay">
+            <div class="menu" id="startMenu">
+                <h1>SPACE INVADERS</h1>
+                <p class="blink-text">Press SPACE to Start</p>
+                <div class="controls">
+                    <p>← → Arrow Keys to Move</p>
+                    <p>SPACE to Shoot</p>
+                    <p>P to Pause</p>
+                    <p>R to Reset Game</p>
+                </div>
+            </div>
+            
+            <div class="menu" id="gameOverMenu" style="display: none;">
+                <h1 class="blink-text">GAME OVER</h1>
+                <p id="finalScore">Final Score: 0</p>
+                <p class="blink-text">Press SPACE to Restart</p>
+            </div>
+            
+            <div class="menu" id="pauseMenu" style="display: none;">
+                <h1 class="blink-text">PAUSED</h1>
+                <p class="blink-text">Press P to Resume</p>
+            </div>
+            
+            <div class="menu" id="levelComplete" style="display: none;">
+                <h1 class="blink-text">LEVEL COMPLETE!</h1>
+                <p id="levelBonus">Bonus: 0</p>
+                <p class="blink-text">Press SPACE to Continue</p>
+            </div>
+            
+            <div class="immortality-message" id="immortalityMessage" style="display: none;">
+                <p class="blink">IMMORTALITY ACTIVATED</p>
+            </div>
+        </div>
+    </div>
+    
+    <script src="script.js"></script>
+</body>
+</html>

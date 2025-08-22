@@ -19,6 +19,9 @@ const MIN_WIDTH = 350
 const MIN_HEIGHT = 275
 let highestZIndex = 10
 let activeWindow = null
+let programsSubmenuTimeout // Declare the variable here
+let gamesSubmenuTimeout // Declare the variable here
+let gamesSubmenu // Declare the variable here
 
 // DOM Elements
 const startButton = document.getElementById("startButton")
@@ -60,9 +63,12 @@ document.addEventListener("click", (e) => {
   if (!startMenu.contains(e.target) && e.target !== startButton) {
     startMenu.style.display = "none"
     // Also hide the programs submenu
-    const programsSubmenu = document.getElementById("programsSubmenu")
     if (programsSubmenu) {
       programsSubmenu.style.display = "none"
+    }
+    // Also hide the games submenu
+    if (gamesSubmenu) {
+      gamesSubmenu.style.display = "none"
     }
   }
 })
@@ -82,21 +88,6 @@ function createProgramsSubmenu() {
   programsSubmenu.style.display = "none"
   programsSubmenu.style.width = "180px" // Smaller width
 
-  // Add Minesweeper option
-  const minesweeperItem = document.createElement("div")
-  minesweeperItem.className = "submenu-item"
-  minesweeperItem.innerHTML = `
-    <img src="assets/img/minesweeper.png" alt="Minesweeper">
-    <span>Minesweeper</span>
-  `
-
-  // Add click event to open Minesweeper
-  minesweeperItem.addEventListener("click", () => {
-    createWindow("minesweeper", "Minesweeper", "minesweeper.html", minesweeperItem.querySelector("img").src)
-    startMenu.style.display = "none"
-    programsSubmenu.style.display = "none"
-  })
-
   // Add Radio option
   const radioItem = document.createElement("div")
   radioItem.className = "submenu-item"
@@ -112,8 +103,72 @@ function createProgramsSubmenu() {
     programsSubmenu.style.display = "none"
   })
 
-  programsSubmenu.appendChild(minesweeperItem)
+  // Add Games option with submenu
+  const gamesItem = document.createElement("div")
+  gamesItem.className = "submenu-item"
+  gamesItem.innerHTML = `
+    <img src="assets/img/joystick.png" alt="Games">
+    <span>Games</span>
+    <span class="arrow">►</span>
+  `
+
+  // Create Games submenu
+  const gamesSubmenu = document.createElement("div")
+  gamesSubmenu.id = "gamesSubmenu"
+  gamesSubmenu.className = "submenu"
+  gamesSubmenu.style.display = "none"
+  gamesSubmenu.style.width = "180px"
+
+  // Add Minesweeper option inside Games
+  const minesweeperItem = document.createElement("div")
+  minesweeperItem.className = "submenu-item"
+  minesweeperItem.innerHTML = `
+    <img src="assets/img/minesweeper.png" alt="Minesweeper">
+    <span>Minesweeper</span>
+  `
+
+  // Add click event to open Minesweeper
+  minesweeperItem.addEventListener("click", () => {
+    createWindow("minesweeper", "Minesweeper", "minesweeper.html", minesweeperItem.querySelector("img").src)
+    startMenu.style.display = "none"
+    programsSubmenu.style.display = "none"
+    gamesSubmenu.style.display = "none"
+  })
+
+  gamesSubmenu.appendChild(minesweeperItem)
+  document.body.appendChild(gamesSubmenu)
+
+  // Games submenu hover events
+  gamesItem.addEventListener("mouseenter", () => {
+    const rect = gamesItem.getBoundingClientRect()
+    gamesSubmenu.style.position = "absolute"
+    gamesSubmenu.style.left = rect.right + "px"
+    gamesSubmenu.style.top = rect.top + "px"
+    gamesSubmenu.style.display = "block"
+  })
+
+  gamesItem.addEventListener("mouseleave", (e) => {
+    const toElement = e.relatedTarget
+    if (!gamesSubmenu.contains(toElement)) {
+      gamesSubmenuTimeout = setTimeout(() => {
+        gamesSubmenu.style.display = "none"
+      }, 200)
+    }
+  })
+
+  gamesSubmenu.addEventListener("mouseenter", () => {
+    clearTimeout(gamesSubmenuTimeout)
+    gamesSubmenu.style.display = "block"
+  })
+
+  gamesSubmenu.addEventListener("mouseleave", () => {
+    gamesSubmenuTimeout = setTimeout(() => {
+      gamesSubmenu.style.display = "none"
+    }, 200)
+  })
+
   programsSubmenu.appendChild(radioItem)
+  programsSubmenu.appendChild(gamesItem)
   document.body.appendChild(programsSubmenu)
 
   return programsSubmenu
@@ -133,10 +188,16 @@ if (programsMenuItem) {
   })
 
   programsMenuItem.addEventListener("mouseleave", (e) => {
-    // Check if mouse is moving to the submenu
+    // Check if mouse is moving to the submenu or any nested submenu
     const toElement = e.relatedTarget
-    if (!programsSubmenu.contains(toElement)) {
+    const gamesSubmenu = document.getElementById("gamesSubmenu")
+
+    if (!programsSubmenu.contains(toElement) && !(gamesSubmenu && gamesSubmenu.contains(toElement))) {
       programsSubmenu.style.display = "none"
+      // Also hide games submenu
+      if (gamesSubmenu) {
+        gamesSubmenu.style.display = "none"
+      }
     }
   })
 }
@@ -146,8 +207,28 @@ programsSubmenu.addEventListener("mouseenter", () => {
   programsSubmenu.style.display = "block"
 })
 
-programsSubmenu.addEventListener("mouseleave", () => {
-  programsSubmenu.style.display = "none"
+programsSubmenu.addEventListener("mouseleave", (e) => {
+  const toElement = e.relatedTarget
+  const gamesSubmenu = document.getElementById("gamesSubmenu")
+
+  if (!(gamesSubmenu && gamesSubmenu.contains(toElement))) {
+    programsSubmenu.style.display = "none"
+    // Also hide games submenu
+    if (gamesSubmenu) {
+      gamesSubmenu.style.display = "none"
+    }
+  }
+})
+
+const mainMenuItems = document.querySelectorAll(".start-menu-item:not(#programsMenuItem)")
+mainMenuItems.forEach((item) => {
+  item.addEventListener("mouseenter", () => {
+    programsSubmenu.style.display = "none"
+    const gamesSubmenu = document.getElementById("gamesSubmenu")
+    if (gamesSubmenu) {
+      gamesSubmenu.style.display = "none"
+    }
+  })
 })
 
 // Clock Window Toggle

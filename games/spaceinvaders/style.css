@@ -1,0 +1,168 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background: #000;
+  color: #00ff00;
+  font-family: "Courier New", monospace;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  overflow: hidden;
+}
+
+.game-container {
+  position: relative;
+  background: #000;
+  border: 2px solid #00ff00;
+  border-radius: 8px;
+  padding: 20px;
+}
+
+.game-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+  font-size: 16px;
+  font-weight: bold;
+  text-shadow: 0 0 10px #00ff00;
+}
+
+.lives-display {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+#lives-container {
+  display: flex;
+  gap: 5px;
+}
+
+.life-icon {
+  width: 20px;
+  height: 15px;
+  background: #00ff00;
+  clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+}
+
+#gameCanvas {
+  background: #000;
+  border: 1px solid #333;
+  display: block;
+}
+
+.game-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.9);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 10;
+}
+
+.menu {
+  text-align: center;
+  color: #00ff00;
+  text-shadow: 0 0 20px #00ff00;
+}
+
+.menu h1 {
+  font-size: 48px;
+  margin-bottom: 30px;
+  letter-spacing: 4px;
+  animation: glow 2s ease-in-out infinite alternate;
+}
+
+.menu h1.blink-text,
+.menu p.blink-text {
+  animation: glow 2s ease-in-out infinite alternate, blink 1s infinite;
+}
+
+.menu p {
+  font-size: 18px;
+  margin: 15px 0;
+}
+
+.controls {
+  margin-top: 30px;
+  font-size: 14px;
+  opacity: 0.8;
+}
+
+.controls p {
+  margin: 8px 0;
+}
+
+@keyframes glow {
+  from {
+    text-shadow: 0 0 20px #00ff00, 0 0 30px #00ff00, 0 0 40px #00ff00;
+  }
+  to {
+    text-shadow: 0 0 10px #00ff00, 0 0 20px #00ff00, 0 0 30px #00ff00;
+  }
+}
+
+@keyframes blink {
+  0%,
+  50% {
+    opacity: 1;
+  }
+  51%,
+  100% {
+    opacity: 0;
+  }
+}
+
+.blink {
+  animation: blink 1s infinite;
+}
+
+.immortality-message {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 20;
+  pointer-events: none;
+  text-align: center;
+  color: #00ff00;
+  text-shadow: 0 0 20px #00ff00;
+}
+
+.immortality-message p {
+  font-size: 48px;
+  font-weight: bold;
+  letter-spacing: 4px;
+  animation: glow 2s ease-in-out infinite alternate, blink 1s infinite;
+}
+
+@media (max-width: 900px) {
+  .game-container {
+    padding: 10px;
+  }
+
+  #gameCanvas {
+    width: 100%;
+    height: auto;
+  }
+
+  .game-header {
+    font-size: 14px;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .menu h1 {
+    font-size: 36px;
+  }
+}
