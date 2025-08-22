@@ -842,7 +842,6 @@ class SpaceInvaders {
       }
     }
 
-    // Check if invaders reached player
     for (const invader of this.invaders) {
       if (invader.alive && invader.y + invader.height >= this.player.y) {
         this.gameOver()
@@ -879,8 +878,8 @@ class SpaceInvaders {
 
   playerHit() {
     console.log("Player hit! Immortal:", this.immortal)
-    if (this.immortal) {
-      console.log("Hit blocked by immortality!")
+    if (this.immortal || (this.player.powerUp === "shield" && this.player.powerUpTimer > 0)) {
+      console.log("Hit blocked by immortality or shield!")
       return
     }
 
@@ -944,9 +943,8 @@ class SpaceInvaders {
     const color = this.player.powerUp ? powerUpColors[this.player.powerUp] || "#ffff00" : "#00ff00"
     this.renderSprite(this.sprites.player, this.player.x, this.player.y, 2, color)
 
-    // Power-up indicator (shield line)
     if (this.player.powerUp) {
-      const spriteWidth = 22 // 11 pixels * 2 scale
+      const spriteWidth = 22
       const shieldX = this.player.x + (spriteWidth - 26) / 2
       this.ctx.fillStyle = powerUpColors[this.player.powerUp] || "#ffff00"
       this.ctx.fillRect(shieldX, this.player.y - 5, 26, 2)
@@ -954,7 +952,6 @@ class SpaceInvaders {
   }
 
   renderBullets() {
-    // Player bullets
     this.ctx.fillStyle = "#ffff00"
     for (const bullet of this.bullets) {
       if (bullet.angle) {
@@ -968,7 +965,6 @@ class SpaceInvaders {
       }
     }
 
-    // Enemy bullets
     this.ctx.fillStyle = "#ff4444"
     for (const bullet of this.enemyBullets) {
       if (bullet.angle) {
@@ -1115,6 +1111,7 @@ class SpaceInvaders {
           this.ctx.fillStyle = color
           this.ctx.fillRect(x + col * scale, y + row * scale, scale, scale)
         } else if (sprite[row][col] === 2) {
+          // Blinking yellow pixels for UFO
           this.ctx.fillStyle = Math.floor(Date.now() / 200) % 2 ? "#ffff00" : color
           this.ctx.fillRect(x + col * scale, y + row * scale, scale, scale)
         }
