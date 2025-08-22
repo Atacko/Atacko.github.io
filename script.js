@@ -76,15 +76,15 @@ document.addEventListener("click", (e) => {
 // Create Programs submenu
 function createProgramsSubmenu() {
   // Remove any existing submenu to prevent duplicates
-  const existingSubmenu = document.getElementById("programsSubmenu")
+  const existingSubmenu = document.getElementById("programs-submenu")
   if (existingSubmenu) {
     existingSubmenu.remove()
   }
 
   // Create submenu container
   const programsSubmenu = document.createElement("div")
-  programsSubmenu.id = "programsSubmenu"
   programsSubmenu.className = "submenu"
+  programsSubmenu.id = "programs-submenu"
   programsSubmenu.style.display = "none"
   programsSubmenu.style.width = "180px" // Smaller width
 
@@ -105,17 +105,17 @@ function createProgramsSubmenu() {
 
   // Add Games option with submenu
   const gamesItem = document.createElement("div")
-  gamesItem.className = "submenu-item"
+  gamesItem.className = "submenu-item has-submenu"
   gamesItem.innerHTML = `
     <img src="assets/img/joystick.png" alt="Games">
     <span>Games</span>
-    <span class="arrow">►</span>
+    <span class="submenu-arrow">►</span>
   `
 
   // Create Games submenu
   const gamesSubmenu = document.createElement("div")
-  gamesSubmenu.id = "gamesSubmenu"
   gamesSubmenu.className = "submenu"
+  gamesSubmenu.id = "games-submenu"
   gamesSubmenu.style.display = "none"
   gamesSubmenu.style.width = "180px"
 
@@ -135,7 +135,28 @@ function createProgramsSubmenu() {
     gamesSubmenu.style.display = "none"
   })
 
+  const spaceInvadersItem = document.createElement("div")
+  spaceInvadersItem.className = "submenu-item"
+  spaceInvadersItem.innerHTML = `
+    <img src="assets/img/spaceinv.png" alt="Space Invaders">
+    <span>Space Invaders</span>
+  `
+
+  spaceInvadersItem.addEventListener("click", () => {
+    createWindow(
+      "space-invaders",
+      "Space Invaders",
+      "games/spaceinvaders/index.html",
+      spaceInvadersItem.querySelector("img").src,
+    )
+    startMenu.style.display = "none"
+    programsSubmenu.style.display = "none"
+    gamesSubmenu.style.display = "none"
+  })
+
   gamesSubmenu.appendChild(minesweeperItem)
+  gamesSubmenu.appendChild(spaceInvadersItem) // Added Space Invaders to Games submenu
+
   document.body.appendChild(gamesSubmenu)
 
   // Games submenu hover events
@@ -190,7 +211,7 @@ if (programsMenuItem) {
   programsMenuItem.addEventListener("mouseleave", (e) => {
     // Check if mouse is moving to the submenu or any nested submenu
     const toElement = e.relatedTarget
-    const gamesSubmenu = document.getElementById("gamesSubmenu")
+    const gamesSubmenu = document.getElementById("games-submenu")
 
     if (!programsSubmenu.contains(toElement) && !(gamesSubmenu && gamesSubmenu.contains(toElement))) {
       programsSubmenu.style.display = "none"
@@ -209,7 +230,7 @@ programsSubmenu.addEventListener("mouseenter", () => {
 
 programsSubmenu.addEventListener("mouseleave", (e) => {
   const toElement = e.relatedTarget
-  const gamesSubmenu = document.getElementById("gamesSubmenu")
+  const gamesSubmenu = document.getElementById("games-submenu")
 
   if (!(gamesSubmenu && gamesSubmenu.contains(toElement))) {
     programsSubmenu.style.display = "none"
@@ -224,7 +245,7 @@ const mainMenuItems = document.querySelectorAll(".start-menu-item:not(#programsM
 mainMenuItems.forEach((item) => {
   item.addEventListener("mouseenter", () => {
     programsSubmenu.style.display = "none"
-    const gamesSubmenu = document.getElementById("gamesSubmenu")
+    const gamesSubmenu = document.getElementById("games-submenu")
     if (gamesSubmenu) {
       gamesSubmenu.style.display = "none"
     }
@@ -446,6 +467,41 @@ function createWindow(id, title, url, icon) {
       <div class="window-resize"></div>
     `
   }
+  // Special case for Space Invaders - use 15% taller height
+  else if (id === "space-invaders") {
+    // Calculate 15% taller than default size
+    const desktopWidth = desktop.offsetWidth
+    const desktopHeight = desktop.offsetHeight
+    const winWidth = Math.min(desktopWidth * 0.65, 800)
+    const defaultHeight = Math.min(desktopHeight * 0.65, 600)
+    const winHeight = Math.floor(defaultHeight * 1.15) // 15% taller
+
+    win.style.width = `${winWidth}px`
+    win.style.height = `${winHeight}px`
+
+    // Create window structure
+    win.innerHTML = `
+      <div class="window-titlebar">
+        <div class="window-title">${title}</div>
+        <div class="window-controls">
+          <div class="window-control window-minimize">_</div>
+          <div class="window-control window-maximize">□</div>
+          <div class="window-control window-close">×</div>
+        </div>
+      </div>
+      <div class="window-content">
+        <iframe src="${url}" frameborder="0"></iframe>
+      </div>
+      <div class="window-resize"></div>
+    `
+
+    // Position the window manually
+    const left = Math.max(0, (desktopWidth - winWidth) / 2)
+    const top = Math.max(0, (desktopHeight - winHeight) / 2)
+
+    win.style.left = `${left}px`
+    win.style.top = `${top}px`
+  }
   // Special case for Radio - use fixed size
   else if (id === "radio") {
     win.style.width = "320px"
@@ -548,6 +604,18 @@ function createWindow(id, title, url, icon) {
     const desktopHeight = desktop.offsetHeight
     const winWidth = 340
     const winHeight = 380
+
+    const left = Math.max(0, (desktopWidth - winWidth) / 2)
+    const top = Math.max(0, (desktopHeight - winHeight) / 2)
+
+    win.style.left = `${left}px`
+    win.style.top = `${top}px`
+  } else if (id === "space-invaders") {
+    // Position Space Invaders window in the center
+    const desktopWidth = desktop.offsetWidth
+    const desktopHeight = desktop.offsetHeight
+    const winWidth = Math.min(desktopWidth * 0.65, 800)
+    const winHeight = Math.min(desktopHeight * 0.65, 600) * 1.15
 
     const left = Math.max(0, (desktopWidth - winWidth) / 2)
     const top = Math.max(0, (desktopHeight - winHeight) / 2)
