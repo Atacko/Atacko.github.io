@@ -93,7 +93,7 @@ function createProgramsSubmenu() {
   radioItem.className = "submenu-item"
   radioItem.innerHTML = `
     <img src="assets/img/radio95.png" alt="Radio">
-    <span>Radio</span>
+    <span>Mini Radio</span>
   `
 
   // Add click event to open Radio
