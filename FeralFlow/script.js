@@ -1029,9 +1029,6 @@ young" rows="8" cols="50">${this.userBlacklist.join("\n")}</textarea>
           <div class="blacklist-actions">
             <button id="saveBlacklist" class="profile-btn">Save Blacklist</button>
             <button id="clearBlacklist" class="profile-btn secondary">Clear All</button>
-          </div>
-          <small>Note: Since e621's API doesn't provide access to user blacklists, you'll need to manually copy your blacklist from your <a href="https://e621.net/users/settings" target="_blank">e621 account settings</a>.</small>
-        </div>
         
         <div class="profile-actions">
           <button id="viewE621Profile" class="profile-btn">View e621 Profile</button>
