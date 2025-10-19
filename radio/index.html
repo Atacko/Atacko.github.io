@@ -1,119 +1,205 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="UTF-8">
-    <!-- <meta name="viewport" content="width=device-width, initial-scale=1.0"> -->
-    <title>Radio Taco</title>
-    <link rel="stylesheet" href="stereo-style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ラム Player</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jsmediatags/3.9.5/jsmediatags.min.js"></script>
 </head>
-
 <body>
-    <div class="stereo-container">
-        <div class="stereo-header">Radio Taco</div>
-        <div class="spectrum-analyzer">
-            <div class="reel-container">
-                <div class="reel"></div>
-                <div class="reel"></div>
-            </div>
-            <div class="bar"></div>
-            <div class="bar"></div>
-            <div class="bar"></div>
-            <div class="bar"></div>
-            <div class="bar"></div>
-            <div class="bar"></div>
-            <div class="bar"></div>
-            <div class="bar"></div>
-            <div class="bar"></div>
-            <div class="bar"></div>
-            <div class="bar"></div>
-            <div class="bar"></div>
-            <div class="bar"></div>
-            <div class="bar"></div>
-            <div class="bar"></div>
-            <div class="bar"></div>
-            <div class="bar"></div>
-            <div class="bar"></div>
-            <div class="bar"></div>
-            <div class="bar"></div>
-            <div class="bar"></div>
-            <div class="bar"></div>
-            <div class="bar"></div>
-            <div class="bar"></div>
-            <div class="bar"></div>
-            <div class="bar"></div>
-            <div class="bar"></div>
-            <div class="bar"></div>
+  <div class="container">
+    <div class="main-content">
+      <div class="window file-explorer">
+        <div class="window-title">
+          FILE EXPLORER
         </div>
-        <div class="controls">
-            <div class="play-pause-container">
-                <div>
-                    <button id="play" class="stereo-button" aria-label="Play">
-                        <svg class="icon" width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                            <polygon points="5,3 19,12 5,21" />
-                        </svg>
-                    </button>
-                    <label class="button-label">Play</label>
-                </div>
-                
-                <div>
-                    <button id="pause" class="stereo-button" aria-label="Pause">
-                        <svg class="icon" width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                            <rect x="5" y="3" width="4" height="18" />
-                            <rect x="15" y="3" width="4" height="18" />
-                        </svg>
-                    </button>
-                    <label class="button-label">Pause</label>
-                </div>                
-            </div>            
-            <div class="knob-container">
-                <div id="bass-knob" class="bass-knob"></div>
-                <label>BASS</label>
-            </div>
-        
-            <div class="knob-container">
-                <div id="treble-knob" class="treble-knob"></div>
-                <label>TREBLE</label>
-            </div>
-        
-            <div class="knob-container">
-                <div id="volume-knob" class="volume-knob"></div>
-                <label>VOLUME</label>
-            </div>
-        
-            <div class="power-button-container">
-                <img id="power-button" src="assets/img/powerON.png" alt="Where the fuck is the image">
-                <span class="button-label">Effects</span>
-            </div>
+        <div class="explorer-content" id="fileList">  
         </div>
-        <!-- MP3 Source Input -->
-    <div class="mp3-source-container">
-        <label for="mp3-source" class="mp3-label">Don't like the music? Put your own MP3 source here!</label>
-        <div class="input-wrapper">
-            <input type="text" id="mp3-source" class="mp3-input" placeholder="Enter MP3 URL">
-            <button id="update-source" class="stereo-button">Update</button>
-            <button id="theme-button" class="theme-button">THEME</button>
+        <div class="file-input-wrapper">
+          <label for="fileInput" class="file-input-btn">
+            [ LOAD FILES ]
+          </label>
+          <input type="file" id="fileInput" accept="audio/*" multiple webkitdirectory directory style="display: none;">
+          <button class="file-input-btn" id="removeFileBtn">
+            [ REMOVE FILE ]
+          </button>
+          <button class="file-input-btn" id="addRadioBtn">
+            [ ADD RADIO ]
+          </button>
         </div>
-    </div>
-    </div>
-    <div id="theme-popup" class="theme-popup">
-        <div class="theme-popup-header">
-            <span>Theme Settings</span>
-            <div class="theme-buttons">
-                <button id="download-css" class="theme-action">Download css</button>
-                <button id="import-css" class="theme-action">Import Custom CSS</button>
-                <button id="reset-theme" class="theme-action">Reset Theme</button>
-                <button id="close-popup" class="close-popup">X</button>
-            </div>
-        </div> 
-        <ul class="theme-list">
-            <li class="theme-item" data-css="TransTheme.css">Trans Theme <button class="load-action load-theme">Load</button></li>
-            <li class="theme-item" data-css="LemonTheme.css">Lemon Theme <button class="load-action load-theme">Load</button></li>
-            <li class="theme-item" data-css="TacoTheme.css">Taco Theme <button class="load-action load-theme">Load</button></li>
-        </ul>              
-    </div>
-        
-    <script src="stereo-script.js"></script>
-</body>
+      </div>
 
+      <div class="window visualizer-area">
+        <div class="window-title">
+          <span>SPECTRUM ANALYZER</span>
+          <div class="title-buttons">
+            <button class="styles-btn" id="exportEqBtn">[ EXPORT EQ ]</button>
+            <button class="styles-btn" id="importEqBtn">[ IMPORT EQ ]</button>
+            <input type="file" id="importEqInput" accept=".json" style="display: none;">
+            <button class="styles-btn" id="stylesBtn">[ STYLES ]</button>
+            <button class="styles-btn icon-btn" id="fullscreenBtn" title="Toggle Fullscreen">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/>
+              </svg>
+            </button>
+            <button class="styles-btn icon-btn" id="plusBtn" title="Add">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+              </svg>
+            </button>
+          </div>
+        </div>
+        <div class="visualizer-content">
+          <canvas id="spectrum-canvas"></canvas>
+          <div class="no-audio-message" id="noAudioMessage">
+            &gt;&gt; AWAITING AUDIO INPUT &lt;&lt;
+          </div>
+        </div>
+      </div>
+
+      <div class="window equalizer">
+        <div class="window-title">
+          EQUALIZER
+        </div>
+        <div class="equalizer-content" id="equalizerContent">
+        </div>
+        <div class="eq-reset-wrapper">
+          <button class="eq-reset-btn" id="eqResetBtn">[ RESET ]</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="control-bar">
+      <div class="album-art-container">
+        <div class="album-art" id="albumArt">
+          ♪
+        </div>
+      </div>
+      
+      <div class="controls-container">
+        <div class="track-info">
+          <div class="track-name" id="trackName">NO TRACK LOADED</div>
+          <div class="track-time">
+            <span id="currentTime">00:00</span> / <span id="duration">00:00</span>
+          </div>
+        </div>
+        
+        <div class="controls-main">
+          <div class="playback-controls">
+            <button class="control-btn" id="prevBtn" disabled>«</button>
+            <button class="control-btn" id="playPauseBtn" disabled>►</button>
+            <button class="control-btn" id="nextBtn" disabled>»</button>
+            <button class="control-btn" id="shuffleBtn" title="Shuffle">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M16 3h5v5M4 20L21 3M21 16v5h-5M15 15l6 6M4 4l5 5"/>
+              </svg>
+            </button>
+            <button class="control-btn" id="repeatBtn" title="Repeat">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M17 1l4 4-4 4"/>
+                <path d="M3 11V9a4 4 0 0 1 4-4h14"/>
+                <path d="M7 23l-4-4 4-4"/>
+                <path d="M21 13v2a4 4 0 0 1-4 4H3"/>
+              </svg>
+            </button>
+            <button class="control-btn active" id="eqToggleBtn" title="Toggle Equalizer">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="4" y1="21" x2="4" y2="14"></line>
+                <line x1="4" y1="10" x2="4" y2="3"></line>
+                <line x1="12" y1="21" x2="12" y2="12"></line>
+                <line x1="12" y1="8" x2="12" y2="3"></line>
+                <line x1="20" y1="21" x2="20" y2="16"></line>
+                <line x1="20" y1="12" x2="20" y2="3"></line>
+                <line x1="1" y1="14" x2="7" y2="14"></line>
+                <line x1="9" y1="8" x2="15" y2="8"></line>
+                <line x1="17" y1="16" x2="23" y2="16"></line>
+              </svg>
+            </button>
+          </div>
+          
+          <div class="progress-container">
+            <div class="progress-bar" id="progressBar">
+              <div class="progress-fill" id="progressFill"></div>
+            </div>
+          </div>
+          
+          <div class="volume-container">
+            <div class="volume-normal">
+              <span class="volume-icon">🔊︎</span>
+              <input type="range" class="volume-slider" id="volumeSlider" min="0" max="100" value="70">
+            </div>
+            
+            <div class="volume-enlarged">
+              <div class="volume-buttons">
+                <button class="volume-btn" id="volumeUpBtn" title="Volume Up">+</button>
+                <button class="volume-btn" id="volumeDownBtn" title="Volume Down">−</button>
+              </div>
+              <div class="volume-indicator-container">
+                <div class="volume-indicator" id="volumeIndicator">
+                  <div class="volume-indicator-fill" id="volumeIndicatorFill"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" id="stylesModal">
+    <div class="modal-content">
+      <div class="modal-title">VISUALIZER STYLES</div>
+      <div class="styles-grid">
+        <button class="style-option" data-style="spectrum">SPECTRUM</button>
+        <button class="style-option" data-style="mirror">MIRROR</button>
+        <button class="style-option" data-style="wave">WAVEFORM</button>
+        <button class="style-option" data-style="galaxy">GALAXY</button>
+        <button class="style-option" data-style="retro">RETRO</button>
+        <button class="style-option" data-style="dialup">DIAL-UP</button>
+      </div>
+      <div class="modal-buttons">
+        <button class="modal-btn" id="closeStylesBtn">[ CLOSE ]</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" id="repeatModal">
+    <div class="modal-content">
+      <div class="modal-title">REPEAT MODE</div>
+      <div class="styles-grid">
+        <button class="style-option" data-repeat="off">OFF</button>
+        <button class="style-option" data-repeat="track">REPEAT TRACK</button>
+        <button class="style-option" data-repeat="playlist">REPEAT PLAYLIST</button>
+      </div>
+      <div class="modal-buttons">
+        <button class="modal-btn" id="closeRepeatBtn">[ CLOSE ]</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" id="radioModal">
+    <div class="modal-content">
+      <div class="modal-title">ADD RADIO STATION</div>
+      <form class="modal-form" id="radioForm">
+        <div class="form-group">
+          <label class="form-label">STATION NAME:</label>
+          <input type="text" class="form-input" id="radioName" placeholder="Enter station name..." required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">STREAM URL:</label>
+          <input type="url" class="form-input" id="radioUrl" placeholder="Enter stream URL..." required>
+        </div>
+        <div class="modal-buttons">
+          <button type="submit" class="modal-btn">[ ADD ]</button>
+          <button type="button" class="modal-btn" id="cancelRadioBtn">[ CANCEL ]</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <audio id="audioPlayer"></audio>
+  <script src="script.js"></script>
+</body>
 </html>

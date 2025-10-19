@@ -247,7 +247,6 @@ class E621Feed {
       }
     })
 
-    // Add event listener for image clicks to open fullscreen
     document.addEventListener("click", (e) => {
       if (e.target.classList.contains("post-image")) {
         this.openFullscreenImage(e.target)

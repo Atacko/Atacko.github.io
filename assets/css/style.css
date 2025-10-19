@@ -1,4 +1,3 @@
-/* Windows 95 Font */
 @font-face {
     font-family: "W95FA";
     src: url("../fonts/W95FA.otf") format("opentype");
@@ -6,7 +5,6 @@
     font-style: normal;
   }
   
-  /* Digital Display Font */
   @font-face {
     font-family: "Digital";
     src: url("../fonts/digital-7.ttf") format("truetype");
@@ -14,7 +12,6 @@
     font-style: normal;
   }
   
-  /* Reset and Base Styles */
   * {
     margin: 0;
     padding: 0;
@@ -30,21 +27,19 @@
     overflow: hidden;
   }
   
-  /* Disable selection for specific elements */
   .desktop-icon,
   .taskbar,
   .window,
   .start-menu {
     user-select: none;
   }
-  
-  /* Desktop */
+
   #desktop {
     position: absolute;
     top: 0;
     left: 0;
     right: 0;
-    bottom: 35px; /* Height of the taskbar */
+    bottom: 35px;
     overflow: hidden;
     background-image: url("../img/wallpaper.png");
     background-size: cover;
@@ -52,7 +47,6 @@
     background-repeat: no-repeat;
   }
   
-  /* Selection Rectangle */
   .selection-rectangle {
     position: absolute;
     border: 1px dotted white;
@@ -61,14 +55,13 @@
     pointer-events: none;
   }
   
-  /* Desktop Icons */
   #desktop-icons {
     padding: 10px;
     display: flex;
     flex-direction: column;
     align-items: flex-start;
     gap: 10px;
-    width: 100px; /* Width for the icon column */
+    width: 100px;
     max-height: 100vh;
     flex-wrap: wrap;
   }
@@ -90,7 +83,7 @@
   
   .desktop-icon:active,
   .desktop-icon.selected {
-    background-color: #000080; /* Navy blue selection color */
+    background-color: #000080;
   }
   
   .desktop-icon:active p,
@@ -119,27 +112,24 @@
     font-size: 14px;
   }
   
-  /* Recycle Bin specific positioning */
   .desktop-icon.recycle-bin {
     position: absolute;
     bottom: 10px;
     right: 10px;
   }
   
-  /* Taskbar */
   .taskbar {
     position: fixed;
     bottom: 0;
     left: 0;
     right: 0;
     height: 35px;
-    background-color: #c0c0c0; /* Classic Windows 95 gray */
+    background-color: #c0c0c0;
     border-top: 1px solid #ffffff;
     display: flex;
     z-index: 9999;
   }
   
-  /* Start Button */
   .start-button {
     display: flex;
     align-items: center;
@@ -164,10 +154,9 @@
     font-size: 14px;
   }
   
-  /* Start Menu */
   .start-menu {
     position: absolute;
-    bottom: 35px; /* Match taskbar height */
+    bottom: 35px;
     left: 3px;
     width: 225px;
     background-color: #c0c0c0;
@@ -182,7 +171,7 @@
     top: 0;
     bottom: 0;
     width: 27px;
-    background-color: #000080; /* Navy blue */
+    background-color: #000080;
     display: flex;
     align-items: center;
   }
@@ -201,7 +190,7 @@
   }
   
   .start-menu-items {
-    margin-left: 27px; /* Width of the sidebar */
+    margin-left: 27px;
     padding: 3px;
   }
   
@@ -239,7 +228,6 @@
     margin: 5px 0;
   }
   
-  /* Submenu */
   .submenu {
     position: absolute;
     left: 100%;
@@ -249,7 +237,7 @@
     display: none;
     min-width: 180px;
     z-index: 10001;
-    padding: 3px; /* Updated padding */
+    padding: 3px;
   }
   
   .start-menu-item.has-submenu:hover .submenu {
@@ -300,7 +288,6 @@
     font-size: 14px;
   }
   
-  /* Taskbar Divider */
   .taskbar-divider {
     width: 1px;
     height: 28px;
@@ -308,7 +295,6 @@
     margin: 4px 3px;
   }
   
-  /* Open Windows Area */
   .open-windows {
     flex: 1;
     display: flex;
@@ -346,7 +332,6 @@
     font-size: 14px;
   }
   
-  /* System Tray */
   .system-tray {
     display: flex;
     align-items: center;
@@ -386,7 +371,6 @@
     font-size: 14px;
   }
   
-  /* Windows */
   .window {
     position: absolute;
     min-width: 350px;
@@ -400,7 +384,7 @@
   
   .window-titlebar {
     height: 22px;
-    background-color: #000080; /* Active window */
+    background-color: #000080;
     color: white;
     display: flex;
     align-items: center;
@@ -409,7 +393,7 @@
   }
   
   .window-titlebar.inactive {
-    background-color: #808080; /* Inactive window */
+    background-color: #808080;
     color: #c0c0c0;
   }
   
@@ -501,7 +485,6 @@
     background-size: contain;
   }
   
-  /* Clock Window */
   .clock-window {
     position: absolute;
     width: 375px;
@@ -585,7 +568,6 @@
     border: inset 2px #c0c0c0;
   }
   
-  /* Media Queries for Mobile */
   @media (max-width: 768px) {
     .desktop-icon {
       width: 75px;
@@ -610,14 +592,12 @@
     }
   }
   
-  /* Add Radio Player Styles */
   .radio-container {
     display: flex;
     flex-direction: column;
     height: 100%;
   }
   
-  /* Display */
   .display {
     height: 60px;
     background-color: #000000;
@@ -661,7 +641,6 @@
     font-weight: bold;
   }
   
-  /* Controls */
   .controls {
     display: flex;
     justify-content: space-between;
@@ -683,7 +662,6 @@
     border: 2px inset #ffffff;
   }
   
-  /* Volume Slider */
   .volume-slider-container {
     display: none;
     padding: 10px;
@@ -707,7 +685,7 @@
     border: 1px outset #ffffff;
     position: absolute;
     top: 0;
-    left: 50%; /* Default position at 50% */
+    left: 50%;
     cursor: pointer;
   }
   
@@ -717,7 +695,6 @@
     font-size: 12px;
   }
   
-  /* Status Bar */
   .status-bar {
     height: 15px;
     background-color: #c0c0c0;
@@ -734,7 +711,6 @@
     margin-right: 5px;
   }
   
-  /* Active States */
   .playing .status-indicator {
     background-color: #00ff00;
   }
@@ -747,7 +723,6 @@
     background-color: #ff0000;
   }
   
-  /* Show volume slider when active */
   .volume-active .volume-slider-container {
     display: block;
   }

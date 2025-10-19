@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <!-- <meta name="viewport" content="width=device-width, initial-scale=1.0"> -->
+    <title>Radio Taco</title>
+    <link rel="stylesheet" href="stereo-style.css">
+</head>
+
+<body>
+    <div class="stereo-container">
+        <div class="stereo-header">Radio Taco</div>
+        <div class="spectrum-analyzer">
+            <div class="reel-container">
+                <div class="reel"></div>
+                <div class="reel"></div>
+            </div>
+            <div class="bar"></div>
+            <div class="bar"></div>
+            <div class="bar"></div>
+            <div class="bar"></div>
+            <div class="bar"></div>
+            <div class="bar"></div>
+            <div class="bar"></div>
+            <div class="bar"></div>
+            <div class="bar"></div>
+            <div class="bar"></div>
+            <div class="bar"></div>
+            <div class="bar"></div>
+            <div class="bar"></div>
+            <div class="bar"></div>
+            <div class="bar"></div>
+            <div class="bar"></div>
+            <div class="bar"></div>
+            <div class="bar"></div>
+            <div class="bar"></div>
+            <div class="bar"></div>
+            <div class="bar"></div>
+            <div class="bar"></div>
+            <div class="bar"></div>
+            <div class="bar"></div>
+            <div class="bar"></div>
+            <div class="bar"></div>
+            <div class="bar"></div>
+            <div class="bar"></div>
+        </div>
+        <div class="controls">
+            <div class="play-pause-container">
+                <div>
+                    <button id="play" class="stereo-button" aria-label="Play">
+                        <svg class="icon" width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <polygon points="5,3 19,12 5,21" />
+                        </svg>
+                    </button>
+                    <label class="button-label">Play</label>
+                </div>
+                
+                <div>
+                    <button id="pause" class="stereo-button" aria-label="Pause">
+                        <svg class="icon" width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <rect x="5" y="3" width="4" height="18" />
+                            <rect x="15" y="3" width="4" height="18" />
+                        </svg>
+                    </button>
+                    <label class="button-label">Pause</label>
+                </div>                
+            </div>            
+            <div class="knob-container">
+                <div id="bass-knob" class="bass-knob"></div>
+                <label>BASS</label>
+            </div>
+        
+            <div class="knob-container">
+                <div id="treble-knob" class="treble-knob"></div>
+                <label>TREBLE</label>
+            </div>
+        
+            <div class="knob-container">
+                <div id="volume-knob" class="volume-knob"></div>
+                <label>VOLUME</label>
+            </div>
+        
+            <div class="power-button-container">
+                <img id="power-button" src="assets/img/powerON.png" alt="Where the fuck is the image">
+                <span class="button-label">Effects</span>
+            </div>
+        </div>
+        <!-- MP3 Source Input -->
+    <div class="mp3-source-container">
+        <label for="mp3-source" class="mp3-label">Don't like the music? Put your own MP3 source here!</label>
+        <div class="input-wrapper">
+            <input type="text" id="mp3-source" class="mp3-input" placeholder="Enter MP3 URL">
+            <button id="update-source" class="stereo-button">Update</button>
+            <button id="theme-button" class="theme-button">THEME</button>
+        </div>
+    </div>
+    </div>
+    <div id="theme-popup" class="theme-popup">
+        <div class="theme-popup-header">
+            <span>Theme Settings</span>
+            <div class="theme-buttons">
+                <button id="download-css" class="theme-action">Download css</button>
+                <button id="import-css" class="theme-action">Import Custom CSS</button>
+                <button id="reset-theme" class="theme-action">Reset Theme</button>
+                <button id="close-popup" class="close-popup">X</button>
+            </div>
+        </div> 
+        <ul class="theme-list">
+            <li class="theme-item" data-css="TransTheme.css">Trans Theme <button class="load-action load-theme">Load</button></li>
+            <li class="theme-item" data-css="LemonTheme.css">Lemon Theme <button class="load-action load-theme">Load</button></li>
+            <li class="theme-item" data-css="TacoTheme.css">Taco Theme <button class="load-action load-theme">Load</button></li>
+        </ul>              
+    </div>
+        
+    <script src="stereo-script.js"></script>
+</body>
+
+</html>

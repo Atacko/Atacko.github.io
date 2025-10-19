@@ -1,4 +1,3 @@
-/* Font Face Declaration */
 @font-face {
     font-family: 'DisposableDroid';
     src: url('../fonts/Disposabledroidbb-y3qM.otf');
@@ -10,7 +9,6 @@
     --nav-font: 'DisposableDroid', sans-serif;
 }
 
-/* General Body Styles */
 body {
     background-color: #121212;
     color: #e0e0e0;
@@ -19,7 +17,6 @@ body {
     padding: 0;
 }
 
-/* Header Styles */
 .header {
     background-color: #1f1f1f;
     color: #e0e0e0;
@@ -32,7 +29,6 @@ body {
     font-size: 2rem;
 }
 
-/* Mod Card Styles */
 .mod-card {
     background-color: #1e1e1e;
     border: 1px solid #333;
@@ -61,13 +57,12 @@ body {
     font-family: var(--heading-font);
 }
 
-/* Button Styles */
 .mod-info .btn {
-    background-color: #630000; /* Dark red color */
-    border-color: #630000; /* Dark red color */
+    background-color: #630000;
+    border-color: #630000;
 }
 
 .mod-info .btn:hover {
-    background-color: #3f0000; /* Darker red color */
-    border-color: #3f0000; /* Darker red color */
+    background-color: #3f0000;
+    border-color: #3f0000;
 }
