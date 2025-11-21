@@ -726,4 +726,9 @@
   .volume-active .volume-slider-container {
     display: block;
   }
+
+  .submenu-item .arrow {
+  margin-left: auto;
+  font-size: 12px;
+}
   

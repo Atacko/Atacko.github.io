@@ -106,7 +106,7 @@ function createProgramsSubmenu() {
   gamesItem.innerHTML = `
     <img src="assets/img/joystick.png" alt="Games">
     <span>Games</span>
-    <span class="submenu-arrow">►</span>
+    <span class="arrow">►</span>
   `
 
   const gamesSubmenu = document.createElement("div")
@@ -148,8 +148,38 @@ function createProgramsSubmenu() {
     gamesSubmenu.style.display = "none"
   })
 
+  const stackItem = document.createElement("div")
+  stackItem.className = "submenu-item"
+  stackItem.innerHTML = `
+    <img src="assets/img/stack.png" alt="Stack">
+    <span>Stack</span>
+  `
+
+  stackItem.addEventListener("click", () => {
+    createWindow("stack", "Stack", "games/Stack/index.html", stackItem.querySelector("img").src)
+    startMenu.style.display = "none"
+    programsSubmenu.style.display = "none"
+    gamesSubmenu.style.display = "none"
+  })
+
+  const pongItem = document.createElement("div")
+  pongItem.className = "submenu-item"
+  pongItem.innerHTML = `
+    <img src="assets/img/pong.png" alt="Pong">
+    <span>Pong</span>
+  `
+
+  pongItem.addEventListener("click", () => {
+    createWindow("pong", "Pong", "games/Pong/index.html", pongItem.querySelector("img").src)
+    startMenu.style.display = "none"
+    programsSubmenu.style.display = "none"
+    gamesSubmenu.style.display = "none"
+  })
+
   gamesSubmenu.appendChild(minesweeperItem)
   gamesSubmenu.appendChild(spaceInvadersItem)
+  gamesSubmenu.appendChild(stackItem)
+  gamesSubmenu.appendChild(pongItem)
 
   document.body.appendChild(gamesSubmenu)
 
@@ -424,8 +454,65 @@ function createWindow(id, title, url, icon) {
     const desktopWidth = desktop.offsetWidth
     const desktopHeight = desktop.offsetHeight
     const winWidth = Math.min(desktopWidth * 0.65, 800)
-    const defaultHeight = Math.min(desktopHeight * 0.65, 600)
-    const winHeight = Math.floor(defaultHeight * 1.15)
+    const winHeight = Math.min(desktopHeight * 0.65, 600) * 1.15
+
+    win.style.width = `${winWidth}px`
+    win.style.height = `${winHeight}px`
+
+    win.innerHTML = `
+      <div class="window-titlebar">
+        <div class="window-title">${title}</div>
+        <div class="window-controls">
+          <div class="window-control window-minimize">_</div>
+          <div class="window-control window-maximize">□</div>
+          <div class="window-control window-close">×</div>
+        </div>
+      </div>
+      <div class="window-content">
+        <iframe src="${url}" frameborder="0"></iframe>
+      </div>
+      <div class="window-resize"></div>
+    `
+
+    const left = Math.max(0, (desktopWidth - winWidth) / 2)
+    const top = Math.max(0, (desktopHeight - winHeight) / 2)
+
+    win.style.left = `${left}px`
+    win.style.top = `${top}px`
+  } else if (id === "stack") {
+    const desktopWidth = desktop.offsetWidth
+    const desktopHeight = desktop.offsetHeight
+    const winWidth = Math.min(desktopWidth * 0.65, 800)
+    const winHeight = Math.min(desktopHeight * 0.65, 600) * 1.15
+
+    win.style.width = `${winWidth}px`
+    win.style.height = `${winHeight}px`
+
+    win.innerHTML = `
+      <div class="window-titlebar">
+        <div class="window-title">${title}</div>
+        <div class="window-controls">
+          <div class="window-control window-minimize">_</div>
+          <div class="window-control window-maximize">□</div>
+          <div class="window-control window-close">×</div>
+        </div>
+      </div>
+      <div class="window-content">
+        <iframe src="${url}" frameborder="0"></iframe>
+      </div>
+      <div class="window-resize"></div>
+    `
+
+    const left = Math.max(0, (desktopWidth - winWidth) / 2)
+    const top = Math.max(0, (desktopHeight - winHeight) / 2)
+
+    win.style.left = `${left}px`
+    win.style.top = `${top}px`
+  } else if (id === "pong") {
+    const desktopWidth = desktop.offsetWidth
+    const desktopHeight = desktop.offsetHeight
+    const winWidth = Math.min(desktopWidth * 0.65, 800)
+    const winHeight = Math.min(desktopHeight * 0.65, 600) * 1.15
 
     win.style.width = `${winWidth}px`
     win.style.height = `${winHeight}px`
@@ -564,11 +651,22 @@ function createWindow(id, title, url, icon) {
 
     win.style.left = `${left}px`
     win.style.top = `${top}px`
-  } else if (id === "radio") {
+  } else if (id === "stack") {
     const desktopWidth = desktop.offsetWidth
     const desktopHeight = desktop.offsetHeight
-    const winWidth = 320
-    const winHeight = 220
+    const winWidth = Math.min(desktopWidth * 0.65, 800)
+    const winHeight = Math.min(desktopHeight * 0.65, 600) * 1.15
+
+    const left = Math.max(0, (desktopWidth - winWidth) / 2)
+    const top = Math.max(0, (desktopHeight - winHeight) / 2)
+
+    win.style.left = `${left}px`
+    win.style.top = `${top}px`
+  } else if (id === "pong") {
+    const desktopWidth = desktop.offsetWidth
+    const desktopHeight = desktop.offsetHeight
+    const winWidth = Math.min(desktopWidth * 0.65, 800)
+    const winHeight = Math.min(desktopHeight * 0.65, 600) * 1.15
 
     const left = Math.max(0, (desktopWidth - winWidth) / 2)
     const top = Math.max(0, (desktopHeight - winHeight) / 2)
