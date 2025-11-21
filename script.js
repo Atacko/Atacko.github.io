@@ -9,6 +9,55 @@ document.addEventListener("DOMContentLoaded", () => {
     console.error("Failed to load wallpaper image")
     document.getElementById("desktop").style.backgroundColor = "#008080"
   }
+
+  const gamesGrid = document.getElementById("gamesGrid")
+
+  if (gamesGrid) {
+    const games = [
+      {
+        id: "minesweeper",
+        name: "Minesweeper",
+        icon: "assets/img/minesweeper.png",
+        url: "minesweeper.html",
+      },
+      {
+        id: "space-invaders",
+        name: "Space Invaders",
+        icon: "assets/img/spaceinv.png",
+        url: "games/spaceinvaders/index.html",
+      },
+      {
+        id: "stack",
+        name: "Stack",
+        icon: "assets/img/stack.png",
+        url: "games/Stack/index.html",
+      },
+      {
+        id: "pong",
+        name: "Pong",
+        icon: "assets/img/pong.png",
+        url: "games/Pong/index.html",
+      },
+    ]
+
+    games.forEach((game) => {
+      const gameIcon = document.createElement("div")
+      gameIcon.className = "game-icon"
+      gameIcon.innerHTML = `
+        <img src="${game.icon}" alt="${game.name}">
+        <p>${game.name}</p>
+      `
+
+      gameIcon.addEventListener("click", () => {
+        window.parent.postMessage(
+          { action: "openGame", gameId: game.id, gameTitle: game.name, gameUrl: game.url, gameIcon: game.icon },
+          "*",
+        )
+      })
+
+      gamesGrid.appendChild(gameIcon)
+    })
+  }
 })
 
 const MIN_WIDTH = 350
@@ -102,113 +151,16 @@ function createProgramsSubmenu() {
   })
 
   const gamesItem = document.createElement("div")
-  gamesItem.className = "submenu-item has-submenu"
+  gamesItem.className = "submenu-item"
   gamesItem.innerHTML = `
     <img src="assets/img/joystick.png" alt="Games">
     <span>Games</span>
-    <span class="arrow">►</span>
   `
 
-  const gamesSubmenu = document.createElement("div")
-  gamesSubmenu.className = "submenu"
-  gamesSubmenu.id = "games-submenu"
-  gamesSubmenu.style.display = "none"
-  gamesSubmenu.style.width = "180px"
-
-  const minesweeperItem = document.createElement("div")
-  minesweeperItem.className = "submenu-item"
-  minesweeperItem.innerHTML = `
-    <img src="assets/img/minesweeper.png" alt="Minesweeper">
-    <span>Minesweeper</span>
-  `
-
-  minesweeperItem.addEventListener("click", () => {
-    createWindow("minesweeper", "Minesweeper", "minesweeper.html", minesweeperItem.querySelector("img").src)
+  gamesItem.addEventListener("click", () => {
+    createWindow("games", "Games", "games.html", gamesItem.querySelector("img").src)
     startMenu.style.display = "none"
     programsSubmenu.style.display = "none"
-    gamesSubmenu.style.display = "none"
-  })
-
-  const spaceInvadersItem = document.createElement("div")
-  spaceInvadersItem.className = "submenu-item"
-  spaceInvadersItem.innerHTML = `
-    <img src="assets/img/spaceinv.png" alt="Space Invaders">
-    <span>Space Invaders</span>
-  `
-
-  spaceInvadersItem.addEventListener("click", () => {
-    createWindow(
-      "space-invaders",
-      "Space Invaders",
-      "games/spaceinvaders/index.html",
-      spaceInvadersItem.querySelector("img").src,
-    )
-    startMenu.style.display = "none"
-    programsSubmenu.style.display = "none"
-    gamesSubmenu.style.display = "none"
-  })
-
-  const stackItem = document.createElement("div")
-  stackItem.className = "submenu-item"
-  stackItem.innerHTML = `
-    <img src="assets/img/stack.png" alt="Stack">
-    <span>Stack</span>
-  `
-
-  stackItem.addEventListener("click", () => {
-    createWindow("stack", "Stack", "games/Stack/index.html", stackItem.querySelector("img").src)
-    startMenu.style.display = "none"
-    programsSubmenu.style.display = "none"
-    gamesSubmenu.style.display = "none"
-  })
-
-  const pongItem = document.createElement("div")
-  pongItem.className = "submenu-item"
-  pongItem.innerHTML = `
-    <img src="assets/img/pong.png" alt="Pong">
-    <span>Pong</span>
-  `
-
-  pongItem.addEventListener("click", () => {
-    createWindow("pong", "Pong", "games/Pong/index.html", pongItem.querySelector("img").src)
-    startMenu.style.display = "none"
-    programsSubmenu.style.display = "none"
-    gamesSubmenu.style.display = "none"
-  })
-
-  gamesSubmenu.appendChild(minesweeperItem)
-  gamesSubmenu.appendChild(spaceInvadersItem)
-  gamesSubmenu.appendChild(stackItem)
-  gamesSubmenu.appendChild(pongItem)
-
-  document.body.appendChild(gamesSubmenu)
-
-  gamesItem.addEventListener("mouseenter", () => {
-    const rect = gamesItem.getBoundingClientRect()
-    gamesSubmenu.style.position = "absolute"
-    gamesSubmenu.style.left = rect.right + "px"
-    gamesSubmenu.style.top = rect.top + "px"
-    gamesSubmenu.style.display = "block"
-  })
-
-  gamesItem.addEventListener("mouseleave", (e) => {
-    const toElement = e.relatedTarget
-    if (!gamesSubmenu.contains(toElement)) {
-      gamesSubmenuTimeout = setTimeout(() => {
-        gamesSubmenu.style.display = "none"
-      }, 200)
-    }
-  })
-
-  gamesSubmenu.addEventListener("mouseenter", () => {
-    clearTimeout(gamesSubmenuTimeout)
-    gamesSubmenu.style.display = "block"
-  })
-
-  gamesSubmenu.addEventListener("mouseleave", () => {
-    gamesSubmenuTimeout = setTimeout(() => {
-      gamesSubmenu.style.display = "none"
-    }, 200)
   })
 
   programsSubmenu.appendChild(radioItem)
@@ -1125,3 +1077,10 @@ function initializeRadioPlayer() {
     })
   })
 }
+
+window.addEventListener("message", (event) => {
+  if (event.data && event.data.action === "openGame") {
+    const { gameId, gameTitle, gameUrl, gameIcon } = event.data
+    createWindow(gameId, gameTitle, gameUrl, gameIcon)
+  }
+})
