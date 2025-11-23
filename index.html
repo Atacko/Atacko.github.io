@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,6 +9,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
   <link rel="stylesheet" href="assets/css/style.css">
 </head>
+
 <body>
   <div id="desktop">
     <div id="desktop-icons">
@@ -39,114 +41,120 @@
         <img src="assets/img/youtubeicon.png" alt="Icon 4">
         <p>Content</p>
       </div>
-        <div class="desktop-icon" data-url="FeralFlow/index.html" target="_blank">
-        <img src="assets/img/FeralFlowIcon.png" alt="Icon 7">
+      <div class="desktop-icon" data-url="FeralFlow/index.html" target="_blank">
+        <img src="assets/img/FeralFlowIcon.png" alt="Icon 8">
         <p>FeralFlow</p>
       </div>
-    </div>
-    
-    <div class="desktop-icon recycle-bin" data-window="recycle-bin">
-      <img src="assets/img/recycle-bin.png" alt="Recycle Bin">
-      <p>Recycle Bin</p>
+      <!--
+      <div class="desktop-icon" data-window="window5" data-url="content.html">
+        <img src="assets/img/Toolbox.png" alt="Icon 5">
+        <p>Toolbox</p>
+      </div> -->
+
+      <div class="desktop-icon recycle-bin" data-window="recycle-bin">
+        <img src="assets/img/recycle-bin.png" alt="Recycle Bin">
+        <p>Recycle Bin</p>
+      </div>
+
+      <div id="windows-container">
+        <!-- Windows will be dynamically added here -->
+      </div>
     </div>
 
-    <div id="windows-container">
-      <!-- Windows will be dynamically added here -->
-    </div>
-  </div>
+    <div class="taskbar">
+      <div class="start-button" id="startButton">
+        <img src="assets/img/win95-start.png" alt="Start">
+        <span>Start</span>
+      </div>
 
-  <div class="taskbar">
-    <div class="start-button" id="startButton">
-      <img src="assets/img/win95-start.png" alt="Start">
-      <span>Start</span>
-    </div>
-    
-    <div id="startMenu" class="start-menu">
-      <div class="start-menu-sidebar">
-        <div class="start-menu-title">Windows 95</div>
-      </div>
-      <div class="start-menu-items">
-        <div class="start-menu-item" id="programsMenuItem">
-          <img src="assets/img/programs.png" alt="Programs">
-          <span>Programs</span>
-          <span class="arrow">►</span>
+      <div id="startMenu" class="start-menu">
+        <div class="start-menu-sidebar">
+          <div class="start-menu-title">Windows 95</div>
         </div>
-        <div class="start-menu-item">
-          <img src="assets/img/documents.png" alt="Documents">
-          <span>Documents</span>
-          <span class="arrow">►</span>
-        </div>
-        <div class="start-menu-item">
-          <img src="assets/img/settings.png" alt="Settings">
-          <span>Settings</span>
-          <span class="arrow">►</span>
-        </div>
-        <div class="start-menu-item">
-          <img src="assets/img/find.png" alt="Find">
-          <span>Find</span>
-          <span class="arrow">►</span>
-        </div>
-        <div class="start-menu-item">
-          <img src="assets/img/help.png" alt="Help">
-          <span>Help</span>
-        </div>
-        <div class="start-menu-item">
-          <img src="assets/img/run.png" alt="Run">
-          <span>Run...</span>
-        </div>
-        <div class="start-menu-divider"></div>
-        <div class="start-menu-item">
-          <img src="assets/img/shutdown.png" alt="Shut Down">
-          <span>Shut Down...</span>
+        <div class="start-menu-items">
+          <div class="start-menu-item" id="programsMenuItem">
+            <img src="assets/img/programs.png" alt="Programs">
+            <span>Programs</span>
+            <span class="arrow">►</span>
+          </div>
+          <div class="start-menu-item">
+            <img src="assets/img/documents.png" alt="Documents">
+            <span>Documents</span>
+            <span class="arrow">►</span>
+          </div>
+          <div class="start-menu-item">
+            <img src="assets/img/settings.png" alt="Settings">
+            <span>Settings</span>
+            <span class="arrow">►</span>
+          </div>
+          <div class="start-menu-item">
+            <img src="assets/img/find.png" alt="Find">
+            <span>Find</span>
+            <span class="arrow">►</span>
+          </div>
+          <div class="start-menu-item">
+            <img src="assets/img/help.png" alt="Help">
+            <span>Help</span>
+          </div>
+          <div class="start-menu-item">
+            <img src="assets/img/run.png" alt="Run">
+            <span>Run...</span>
+          </div>
+          <div class="start-menu-divider"></div>
+          <div class="start-menu-item">
+            <img src="assets/img/shutdown.png" alt="Shut Down">
+            <span>Shut Down...</span>
+          </div>
         </div>
       </div>
-    </div>
-    
-    <div class="taskbar-divider"></div>
-    
-    <div class="open-windows">
-      <!-- Open windows will be added here -->
-    </div>
-    
-    <div class="system-tray">
-      <div class="tray-icons">
-        <a href="https://x.com/AGoatFromHell" target="_blank" class="tray-icon">
-          <i class="fab fa-twitter"></i>
-        </a>
-        <a href="https://t.me/Atacko" target="_blank" class="tray-icon">
-          <i class="fab fa-telegram"></i>
-        </a>
-        <a href="https://discordapp.com/users/344876495258255364" target="_blank" class="tray-icon">
-          <i class="fab fa-discord"></i>
-        </a>
-        <a href="https://www.instagram.com/atacko_?igsh=ZnQyY2Rhc2Z2bTh2&utm_source=qr" target="_blank" class="tray-icon">
-          <i class="fab fa-instagram"></i>
-        </a>
-        <a href="https://www.youtube.com/@Atacko" target="_blank" class="tray-icon">
-          <i class="fab fa-youtube"></i>
-        </a>
-      </div>
-      <div class="clock" id="clock">
-        <span id="time">12:00 PM</span>
-      </div>
-    </div>
-  </div>
 
-  <div id="clockWindow" class="clock-window">
-    <div class="clock-window-titlebar">
-      <div class="clock-window-title">Date/Time Properties</div>
-      <div class="clock-window-close" id="clockWindowClose">×</div>
-    </div>
-    <div class="clock-window-content">
-      <div class="date-display" id="dateDisplay">Monday, May 19, 2025</div>
-      <div class="clock-display" id="clockDisplay">3:21:02 AM</div>
-      <div class="clock-buttons">
-        <div class="clock-button" id="clockOkButton">OK</div>
-        <div class="clock-button" id="clockCancelButton">Cancel</div>
+      <div class="taskbar-divider"></div>
+
+      <div class="open-windows">
+        <!-- Open windows will be added here -->
+      </div>
+
+      <div class="system-tray">
+        <div class="tray-icons">
+          <a href="https://x.com/AGoatFromHell" target="_blank" class="tray-icon">
+            <i class="fab fa-twitter"></i>
+          </a>
+          <a href="https://t.me/Atacko" target="_blank" class="tray-icon">
+            <i class="fab fa-telegram"></i>
+          </a>
+          <a href="https://discordapp.com/users/344876495258255364" target="_blank" class="tray-icon">
+            <i class="fab fa-discord"></i>
+          </a>
+          <a href="https://www.instagram.com/atacko_?igsh=ZnQyY2Rhc2Z2bTh2&utm_source=qr" target="_blank"
+            class="tray-icon">
+            <i class="fab fa-instagram"></i>
+          </a>
+          <a href="https://www.youtube.com/@Atacko" target="_blank" class="tray-icon">
+            <i class="fab fa-youtube"></i>
+          </a>
+        </div>
+        <div class="clock" id="clock">
+          <span id="time">12:00 PM</span>
+        </div>
       </div>
     </div>
-  </div>
 
-  <script src="script.js"></script>
+    <div id="clockWindow" class="clock-window">
+      <div class="clock-window-titlebar">
+        <div class="clock-window-title">Date/Time Properties</div>
+        <div class="clock-window-close" id="clockWindowClose">×</div>
+      </div>
+      <div class="clock-window-content">
+        <div class="date-display" id="dateDisplay">Monday, May 19, 2025</div>
+        <div class="clock-display" id="clockDisplay">3:21:02 AM</div>
+        <div class="clock-buttons">
+          <div class="clock-button" id="clockOkButton">OK</div>
+          <div class="clock-button" id="clockCancelButton">Cancel</div>
+        </div>
+      </div>
+    </div>
+
+    <script src="script.js"></script>
 </body>
+
 </html>

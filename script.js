@@ -625,6 +625,17 @@ function createWindow(id, title, url, icon) {
 
     win.style.left = `${left}px`
     win.style.top = `${top}px`
+  } else if (id === "radio") {
+    const desktopWidth = desktop.offsetWidth
+    const desktopHeight = desktop.offsetHeight
+    const winWidth = 320
+    const winHeight = 220
+
+    const left = Math.max(0, (desktopWidth - winWidth) / 2)
+    const top = Math.max(0, (desktopHeight - winHeight) / 2)
+
+    win.style.left = `${left}px`
+    win.style.top = `${top}px`
   } else {
     centerWindow(win)
   }
