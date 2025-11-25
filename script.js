@@ -555,6 +555,27 @@ function createWindow(id, title, url, icon) {
       <div class="window-statusbar">Ready</div>
       <div class="window-resize"></div>
     `
+  } else if (id === "window5") {
+    win.innerHTML = `
+      <div class="window-titlebar">
+        <div class="window-title">${title}</div>
+        <div class="window-controls">
+          <div class="window-control window-minimize">_</div>
+          <div class="window-control window-maximize">□</div>
+          <div class="window-control window-close">×</div>
+        </div>
+      </div>
+      <div class="window-menu">
+        <div class="window-menu-item">File</div>
+        <div class="window-menu-item">Edit</div>
+        <div class="window-menu-item">View</div>
+        <div class="window-menu-item">Help</div>
+      </div>
+      <div class="window-content" style="display: flex; flex-direction: column; align-items: flex-start; padding: 10px; gap: 10px; background-color: #c0c0c0; overflow-y: auto;" id="toolsGrid">
+      </div>
+      <div class="window-statusbar">Ready</div>
+      <div class="window-resize"></div>
+    `
   } else {
     win.innerHTML = `
       <div class="window-titlebar">
@@ -577,6 +598,7 @@ function createWindow(id, title, url, icon) {
       <div class="window-statusbar">Ready</div>
       <div class="window-resize"></div>
     `
+    centerWindow(win)
   }
 
   windowsContainer.appendChild(win)
@@ -644,10 +666,18 @@ function createWindow(id, title, url, icon) {
 
   setupWindowEvents(win)
 
+  if (id === "window5") {
+    initializeToolbox()
+  }
+
   activateWindow(win)
 
   if (id === "radio") {
     initializeRadioPlayer()
+  }
+
+  if (id === "window5") {
+    centerWindow(win)
   }
 
   return win
@@ -1086,6 +1116,44 @@ function initializeRadioPlayer() {
     button.addEventListener("mouseleave", function () {
       this.style.borderStyle = "outset"
     })
+  })
+}
+
+function initializeToolbox() {
+  const toolsGrid = document.getElementById("toolsGrid")
+
+  if (!toolsGrid) return
+
+  const tools = [
+    {
+      id: "asciigen",
+      name: "ASCII Art Generator",
+      icon: "assets/img/ascii.png",
+      url: "Tools/ASCIIGen/asciigen.html",
+    },
+  ]
+
+  tools.forEach((tool) => {
+    const toolIcon = document.createElement("div")
+    toolIcon.className = "game-icon"
+    toolIcon.style.width = "90px"
+    toolIcon.style.height = "110px"
+    toolIcon.style.display = "flex"
+    toolIcon.style.flexDirection = "column"
+    toolIcon.style.alignItems = "center"
+    toolIcon.style.justifyContent = "flex-start"
+    toolIcon.style.cursor = "pointer"
+    toolIcon.style.padding = "5px"
+    toolIcon.innerHTML = `
+      <img src="${tool.icon}" alt="${tool.name}" style="width: 40px; height: 40px; margin-bottom: 8px;">
+      <p style="text-align: center; font-size: 14px; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: normal; word-wrap: break-word; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">${tool.name}</p>
+    `
+
+    toolIcon.addEventListener("click", () => {
+      createWindow(tool.id, tool.name, tool.url, tool.icon)
+    })
+
+    toolsGrid.appendChild(toolIcon)
   })
 }
 

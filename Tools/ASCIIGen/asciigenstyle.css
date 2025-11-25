@@ -1,0 +1,271 @@
+@font-face {
+  font-family: "W95FA";
+  src: url("../../assets/fonts/W95FA.otf") format("opentype");
+  font-weight: normal;
+  font-style: normal;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "W95FA", sans-serif;
+  font-size: 14px;
+}
+
+body,
+html {
+  width: 100%;
+  height: 100%;
+}
+
+.ascii-container {
+  width: 100%;
+  height: 100%;
+  background-color: #c0c0c0;
+  padding: 10px;
+  overflow-y: scroll;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.ascii-container::-webkit-scrollbar {
+  display: none;
+}
+
+.ascii-panel {
+  background-color: #c0c0c0;
+  border: outset 2px;
+  border-color: #ffffff #808080 #808080 #ffffff;
+  padding: 10px;
+  flex-shrink: 0;
+}
+
+.ascii-panel-grow {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.ascii-panel-grow .preview-container {
+  flex: 1;
+}
+
+.panel-title {
+  background-color: #000080;
+  color: white;
+  padding: 2px 3px;
+  margin: -10px -10px 10px -10px;
+  font-weight: bold;
+  font-size: 14px;
+}
+
+.input-group {
+  margin-bottom: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.input-group-horizontal {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 10px;
+  align-items: flex-start;
+}
+
+.input-group-horizontal .input-group {
+  margin-bottom: 0;
+}
+
+.flex-1 {
+  flex: 1;
+}
+
+.input-group label {
+  font-size: 14px;
+  color: #000000;
+}
+
+.input-group input[type="file"],
+.input-group input[type="number"],
+.input-group input[type="text"],
+.select-input {
+  border: inset 2px;
+  border-color: #808080 #ffffff #ffffff #808080;
+  padding: 3px 5px;
+  background-color: white;
+  color: #000000;
+  font-family: "W95FA", sans-serif;
+  font-size: 14px;
+  width: 100%;
+}
+
+.input-group input[type="color"] {
+  width: 60px;
+  height: 28px;
+  border: inset 2px;
+  border-color: #808080 #ffffff #ffffff #808080;
+  cursor: pointer;
+}
+
+.number-input {
+  width: 100%;
+}
+
+.select-input {
+  cursor: pointer;
+  width: 100%;
+}
+
+.checkbox-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.checkbox-group input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+  accent-color: #000080;
+}
+
+.checkbox-group label {
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.image-preview-thumb {
+  width: 100px;
+  height: 80px;
+  border: inset 2px;
+  border-color: #808080 #ffffff #ffffff #808080;
+  background-color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #808080;
+  font-size: 12px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.image-preview-thumb img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+.preview-container {
+  width: 100%;
+  background-color: white;
+  border: inset 2px;
+  border-color: #808080 #ffffff #ffffff #808080;
+  padding: 8px;
+  overflow: auto;
+  font-family: "Courier New", monospace;
+  font-size: 10px;
+  line-height: 1;
+  white-space: pre;
+  color: #ffffff;
+  background-color: #000000;
+  margin-bottom: 10px;
+  min-height: 150px;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.preview-container::-webkit-scrollbar {
+  display: none;
+}
+
+#asciiPreview {
+  margin: 0;
+  padding: 0;
+  font-family: "Courier New", monospace;
+}
+
+.download-buttons-container {
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap;
+  flex-shrink: 0;
+}
+
+.download-buttons-container .win95-button {
+  flex: 1;
+  min-width: 140px;
+}
+
+.win95-button {
+  padding: 5px 12px;
+  background-color: #c0c0c0;
+  border: outset 2px;
+  border-color: #ffffff #808080 #808080 #ffffff;
+  color: #000000;
+  font-family: "W95FA", sans-serif;
+  font-size: 14px;
+  cursor: pointer;
+  margin-top: 5px;
+  white-space: nowrap;
+}
+
+.win95-button:active {
+  border: inset 2px;
+  border-color: #808080 #ffffff #ffffff #808080;
+}
+
+.win95-button:disabled {
+  color: #808080;
+  cursor: not-allowed;
+  text-shadow: 1px 1px 0px #ffffff;
+}
+
+@media (max-width: 768px) {
+  .ascii-container {
+    padding: 5px;
+    gap: 5px;
+  }
+
+  .ascii-panel {
+    padding: 8px;
+  }
+
+  .input-group-horizontal {
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  .preview-container {
+    min-height: 120px;
+    font-size: 8px;
+  }
+
+  .win95-button {
+    padding: 4px 8px;
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .image-preview-thumb {
+    width: 80px;
+    height: 60px;
+  }
+
+  .preview-container {
+    min-height: 100px;
+    font-size: 7px;
+  }
+
+  .win95-button {
+    min-width: 100px;
+    padding: 3px 6px;
+    font-size: 11px;
+  }
+}

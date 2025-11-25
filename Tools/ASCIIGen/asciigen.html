@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ASCII Art Generator</title>
+  <link rel="stylesheet" href="asciigenstyle.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+</head>
+<body>
+  <div class="ascii-container">
+    <div class="ascii-panel">
+      <div class="panel-title">Image Input</div>
+      <div class="input-group-horizontal">
+        <div class="input-group flex-1">
+          <label for="imageInput">Select Image:</label>
+          <input type="file" id="imageInput" accept="image/*">
+        </div>
+        <div id="imagePreview" class="image-preview-thumb"></div>
+      </div>
+    </div>
+
+    <div class="ascii-panel">
+      <div class="panel-title">Settings</div>
+      
+      <div class="input-group-horizontal">
+        <div class="input-group flex-1">
+          <label for="widthInput">Image Width (chars):</label>
+          <input type="number" id="widthInput" min="10" max="200" value="80" class="number-input">
+        </div>
+        <div class="input-group flex-1">
+          <label for="artType">Art Type:</label>
+          <select id="artType" class="select-input">
+            <option value="ascii">ASCII Art</option>
+            <option value="html">HTML Art</option>
+          </select>
+        </div>
+      </div>
+
+      <div id="colorOptionsContainer">
+        <div class="input-group">
+          <label for="textColorInput">Text Color:</label>
+          <input type="color" id="textColorInput" value="#ffffff">
+        </div>
+
+        <div class="input-group">
+          <label for="bgColorInput">Background Color:</label>
+          <input type="color" id="bgColorInput" value="#000000">
+        </div>
+      </div>
+
+      <div class="checkbox-group">
+        <input type="checkbox" id="invertCheckbox">
+        <label for="invertCheckbox">Invert Image</label>
+      </div>
+
+      <div class="checkbox-group">
+        <input type="checkbox" id="contrastCheckbox">
+        <label for="contrastCheckbox">Extra Contrast</label>
+      </div>
+
+      <div id="htmlOptionsContainer" style="display: none;">
+        <div class="input-group">
+          <label for="charactersInput">Characters:</label>
+          <div class="input-group-horizontal">
+            <input type="text" id="charactersInput" class="flex-1" value="01">
+            <div class="checkbox-group" style="margin-bottom: 0; margin-left: 8px;">
+              <input type="checkbox" id="randomizeCheckbox">
+              <label for="randomizeCheckbox">Randomize</label>
+            </div>
+          </div>
+        </div>
+
+        <div class="input-group">
+          <label for="fontSizeSelect">Font Size:</label>
+          <select id="fontSizeSelect" class="select-input">
+            <option value="smallest">Smallest (6px)</option>
+            <option value="small">Small (8px)</option>
+            <option value="medium" selected>Medium (10px)</option>
+            <option value="large">Large (12px)</option>
+            <option value="largest">Largest (14px)</option>
+          </select>
+        </div>
+      </div>
+
+      <button id="generateBtn" class="win95-button">Generate ASCII Art</button>
+    </div>
+
+    <div class="ascii-panel ascii-panel-grow">
+      <div class="panel-title">Preview</div>
+      <div id="previewContainer" class="preview-container">
+        <pre id="asciiPreview">Click "Generate ASCII Art" to see preview...</pre>
+      </div>
+      <div id="downloadButtonsContainer" class="download-buttons-container">
+        <button id="downloadBtn" class="win95-button" disabled>Download as .txt</button>
+        <button id="downloadPngBtn" class="win95-button" style="display: none;" disabled>Download as .png</button>
+        <button id="htmlDownloadPngBtn" class="win95-button" style="display: none;" disabled>Download as .png</button>
+        <button id="fullscreenBtn" class="win95-button" style="display: none;" disabled>Full screen preview</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="asciigenscript.js"></script>
+</body>
+</html>
