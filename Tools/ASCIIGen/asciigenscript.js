@@ -271,20 +271,32 @@ function downloadAsPNG() {
 function downloadHTMLAsPNG() {
   if (!generatedOutput) return
 
-  const element = previewContainer
-  const scrollHeight = element.scrollHeight
-  const scrollWidth = element.scrollWidth
+  const originalPreviewStyle = asciiPreview.style.cssText
+  const originalContainerStyle = previewContainer.style.cssText
+  
+  previewContainer.style.maxHeight = 'none'
+  previewContainer.style.overflow = 'visible'
+  asciiPreview.style.maxHeight = 'none'
+  asciiPreview.style.overflow = 'visible'
+  
+  const elementToCapture = previewContainer 
 
-  html2canvas(element, {
+  const scrollHeight = elementToCapture.scrollHeight
+  const scrollWidth = elementToCapture.scrollWidth
+
+  html2canvas(elementToCapture, {
     backgroundColor: bgColorInput.value,
     scale: 2,
     useCORS: true,
     allowTaint: true,
     width: scrollWidth,
     height: scrollHeight,
-    windowHeight: scrollHeight,
+    windowHeight: scrollHeight, 
     windowWidth: scrollWidth,
   }).then((canvas) => {
+    asciiPreview.style.cssText = originalPreviewStyle
+    previewContainer.style.cssText = originalContainerStyle
+
     canvas.toBlob((blob) => {
       const url = URL.createObjectURL(blob)
       const link = document.createElement("a")
@@ -293,6 +305,9 @@ function downloadHTMLAsPNG() {
       link.click()
       URL.revokeObjectURL(url)
     })
+  }).catch(() => {
+    asciiPreview.style.cssText = originalPreviewStyle
+    previewContainer.style.cssText = originalContainerStyle
   })
 }
 
