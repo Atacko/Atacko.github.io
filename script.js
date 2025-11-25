@@ -1124,12 +1124,26 @@ function initializeToolbox() {
 
   if (!toolsGrid) return
 
+  toolsGrid.style.display = "flex"
+  toolsGrid.style.flexDirection = "row"
+  toolsGrid.style.flexWrap = "wrap"
+  toolsGrid.style.width = "100%"
+  toolsGrid.style.gap = "10px" 
+  toolsGrid.style.alignContent = "flex-start" 
+  toolsGrid.style.padding = "10px" 
+
   const tools = [
     {
       id: "asciigen",
       name: "ASCII Art Generator",
       icon: "assets/img/ascii.png",
       url: "Tools/ASCIIGen/asciigen.html",
+    },
+    {
+      id: "qrgen",
+      name: "QR Code Generator",
+      icon: "assets/img/qr-code.png",
+      url: "Tools/qrgen/qrgen.html",
     },
   ]
 
@@ -1144,6 +1158,8 @@ function initializeToolbox() {
     toolIcon.style.justifyContent = "flex-start"
     toolIcon.style.cursor = "pointer"
     toolIcon.style.padding = "5px"
+    toolIcon.style.flexShrink = "0"
+    
     toolIcon.innerHTML = `
       <img src="${tool.icon}" alt="${tool.name}" style="width: 40px; height: 40px; margin-bottom: 8px;">
       <p style="text-align: center; font-size: 14px; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: normal; word-wrap: break-word; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">${tool.name}</p>

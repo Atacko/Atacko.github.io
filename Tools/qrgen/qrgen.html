@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QR Code Generator</title>
+  <link rel="stylesheet" href="qrgenstyle.css">
+  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
+</head>
+<body>
+  <div class="qr-container">
+    <div class="qr-panel">
+      <div class="panel-title">QR Code Input</div>
+      
+      <div class="input-group">
+        <label for="dataInput">Enter Text or URL:</label>
+        <textarea id="dataInput" class="text-input" rows="4" placeholder="https://e621.net"></textarea>
+      </div>
+
+      <div class="input-group-horizontal">
+        <div class="input-group flex-1">
+          <label for="errorCorrection">Error Correction:</label>
+          <select id="errorCorrection" class="select-input">
+            <option value="L">Low (7%)</option>
+            <option value="M" selected>Medium (15%)</option>
+            <option value="Q">Quartile (25%)</option>
+            <option value="H">High (30%)</option>
+          </select>
+        </div>
+        <div class="input-group flex-1">
+          <label for="sizeInput">Size (px):</label>
+          <input type="number" id="sizeInput" min="50" max="500" value="200" class="number-input">
+        </div>
+      </div>
+      
+      <div class="input-group-horizontal">
+        <div class="input-group flex-1">
+          <label for="fgColorInput">Foreground Color:</label>
+          <input type="color" id="fgColorInput" value="#000000">
+        </div>
+        <div class="input-group flex-1">
+          <label for="bgColorInput">Background Color:</label>
+          <input type="color" id="bgColorInput" value="#ffffff">
+        </div>
+      </div>
+
+      <button id="generateBtn" class="win95-button">Generate QR Code</button>
+    </div>
+
+    <div class="qr-panel qr-panel-grow">
+      <div class="panel-title">Preview & Download</div>
+      <div id="previewContainer" class="preview-container">
+        <div id="qrCodeContainer" class="qr-code-display">
+          <p>Enter data and click 'Generate QR Code'</p>
+        </div>
+      </div>
+      <div id="downloadButtonsContainer" class="download-buttons-container">
+        <button id="downloadBtn" class="win95-button" disabled>Download as PNG</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="qrgenscript.js"></script>
+</body>
+</html>
