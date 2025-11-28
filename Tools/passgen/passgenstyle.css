@@ -1,0 +1,304 @@
+@font-face {
+  font-family: "W95FA";
+  src: url("../../assets/fonts/W95FA.otf") format("opentype");
+  font-weight: normal;
+  font-style: normal;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "W95FA", sans-serif;
+  font-size: 14px;
+  color: #000000;
+}
+
+body,
+html {
+  width: 100%;
+  height: 100%;
+}
+
+.passgen-container {
+  width: 100%;
+  height: 100%;
+  background-color: #c0c0c0;
+  padding: 10px;
+  overflow-y: scroll;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.passgen-container::-webkit-scrollbar {
+  display: none;
+}
+
+.passgen-panel {
+  background-color: #c0c0c0;
+  border: outset 2px;
+  border-color: #ffffff #808080 #808080 #ffffff;
+  padding: 10px;
+  flex-shrink: 0;
+}
+
+.passgen-panel-grow {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.panel-title {
+  background-color: #000080;
+  color: white;
+  padding: 2px 3px;
+  margin: -10px -10px 10px -10px;
+  font-weight: bold;
+  font-size: 14px;
+}
+
+.input-group {
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.input-group label {
+  flex-shrink: 0;
+  min-width: 120px;
+}
+
+input[type="text"],
+.win95-output {
+  flex: 1;
+  background-color: #ffffff;
+  border: inset 2px;
+  border-color: #808080 #ffffff #ffffff #808080;
+  padding: 3px 5px;
+  color: #000000;
+  font-family: "Courier New", monospace;
+  font-size: 16px;
+  min-width: 0;
+}
+
+input[type="text"]:focus,
+input[type="number"]:focus,
+.win95-output:focus,
+textarea:focus {
+    outline: none;
+}
+
+input[type="number"] {
+  font-family: "W95FA", sans-serif;
+  font-size: 14px;
+  text-align: center;
+  width: 70px;
+  flex-grow: 0;
+  background-color: #ffffff;
+  border: inset 2px;
+  border-color: #808080 #ffffff #ffffff #808080;
+  padding: 3px 5px;
+}
+
+.win95-output {
+    flex: 1;
+    min-height: 50px;
+    resize: none;
+    overflow: auto;
+    white-space: pre-wrap;
+    word-break: break-all;
+    cursor: default;
+    user-select: all;
+    background-color: #f0f0f0; 
+    margin-bottom: 10px;
+    font-family: "Courier New", monospace;
+}
+
+.win95-button {
+  padding: 5px 12px;
+  background-color: #c0c0c0;
+  border: outset 2px;
+  border-color: #ffffff #808080 #808080 #ffffff;
+  color: #000000;
+  font-family: "W95FA", sans-serif;
+  font-size: 14px;
+  cursor: pointer;
+  white-space: nowrap;
+  flex: 1;
+  min-width: 100px;
+  margin-top: 5px;
+}
+
+.win95-button:active {
+  border: inset 2px;
+  border-color: #808080 #ffffff #ffffff #808080;
+}
+
+.win95-button:disabled {
+  color: #808080;
+  cursor: not-allowed;
+}
+
+.button-group {
+    display: flex;
+    gap: 5px;
+    margin-top: 5px;
+    flex-shrink: 0;
+}
+
+.checkbox-group-wrapper {
+    display: flex; 
+    flex-wrap: wrap; 
+    gap: 8px 15px; 
+    margin-bottom: 10px;
+}
+.checkbox-option {
+    display: inline-flex; 
+    align-items: center;
+    cursor: pointer;
+    user-select: none;
+    gap: 5px;
+}
+
+.win95-checkbox-container {
+    position: relative;
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+}
+
+.win95-checkbox-container input[type="checkbox"] {
+    position: absolute;
+    opacity: 0;
+    height: 0;
+    width: 0;
+}
+
+.win95-checkmark {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 16px;
+    width: 16px;
+    background-color: #ffffff;
+    border: inset 2px;
+    border-color: #808080 #ffffff #ffffff #808080;
+}
+
+.win95-checkmark:after {
+    content: "";
+    position: absolute;
+    display: none;
+}
+
+.win95-checkbox-container input:checked ~ .win95-checkmark:after {
+    display: block;
+}
+
+.win95-checkbox-container .win95-checkmark:after {
+    left: 4px;
+    top: 1px;
+    width: 4px;
+    height: 9px;
+    border: solid black;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+}
+
+.win95-range-container {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+input[type="range"] {
+  flex: 1;
+  -webkit-appearance: none;
+  background: transparent;
+  width: 100%;
+  height: 18px;
+  margin: 0;
+  padding: 0;
+  border: none;
+}
+
+input[type="range"]::-webkit-slider-runnable-track {
+  width: 100%;
+  height: 8px;
+  background: #c0c0c0;
+  border: inset 2px;
+  border-color: #808080 #ffffff #ffffff #808080;
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  border: outset 2px;
+  border-color: #ffffff #808080 #808080 #ffffff;
+  height: 16px;
+  width: 10px;
+  background: #c0c0c0;
+  cursor: pointer;
+  margin-top: -4px; 
+  border-radius: 0; 
+}
+
+input[type="range"]::-moz-range-track {
+  width: 100%;
+  height: 8px;
+  background: #c0c0c0;
+  border: inset 2px;
+  border-color: #808080 #ffffff #ffffff #808080;
+}
+input[type="range"]::-moz-range-thumb {
+  border: outset 2px;
+  border-color: #ffffff #808080 #808080 #ffffff;
+  height: 16px;
+  width: 10px;
+  background: #c0c0c0;
+  cursor: pointer;
+  border-radius: 0; 
+}
+
+#strengthIndicator {
+    margin-top: 5px;
+    border: inset 2px;
+    border-color: #808080 #ffffff #ffffff #808080;
+    background-color: #ffffff;
+    min-height: 25px;
+    display: flex;
+    align-items: center;
+    padding: 3px 5px;
+    flex-shrink: 0;
+}
+
+.strength-bar-track {
+    height: 15px;
+    background-color: #ffffff;
+    border: 1px solid #808080;
+    width: 100%;
+    margin-right: 5px;
+    overflow: hidden;
+}
+
+.strength-fill {
+    height: 100%;
+    transition: width 0.3s ease-in-out;
+}
+
+.strength-text {
+    font-weight: bold;
+    flex-shrink: 0;
+    min-width: 100px;
+    text-align: right;
+}
+
+.super-weak { background-color: #808080; } 
+.weak { background-color: #ffa500; }     
+.medium { background-color: #ffcc00; }   
+.strong { background-color: #008000; }   
+.very-strong { background-color: #0000ff; } 
+.super-strong { background-color: #ff0000; }

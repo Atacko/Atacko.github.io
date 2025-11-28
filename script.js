@@ -399,7 +399,7 @@ function createWindow(id, title, url, icon) {
       <div class="window-content">
         <iframe src="${url}" frameborder="0"></iframe>
       </div>
-      <div class="window-statusbar">Ready</div>
+      <div class="window-statusbar"></div>
       <div class="window-resize"></div>
     `
   } else if (id === "space-invaders") {
@@ -552,7 +552,7 @@ function createWindow(id, title, url, icon) {
           </div>
         </div>
       </div>
-      <div class="window-statusbar">Ready</div>
+      <div class="window-statusbar"></div>
       <div class="window-resize"></div>
     `
   } else if (id === "window5") {
@@ -573,7 +573,7 @@ function createWindow(id, title, url, icon) {
       </div>
       <div class="window-content" style="display: flex; flex-direction: column; align-items: flex-start; padding: 10px; gap: 10px; background-color: #c0c0c0; overflow-y: auto;" id="toolsGrid">
       </div>
-      <div class="window-statusbar">Ready</div>
+      <div class="window-statusbar"></div>
       <div class="window-resize"></div>
     `
   } else {
@@ -595,7 +595,7 @@ function createWindow(id, title, url, icon) {
       <div class="window-content">
         <iframe src="${url}" frameborder="0"></iframe>
       </div>
-      <div class="window-statusbar">Ready</div>
+      <div class="window-statusbar"></div>
       <div class="window-resize"></div>
     `
     centerWindow(win)
@@ -1144,6 +1144,12 @@ function initializeToolbox() {
       name: "QR Code Generator",
       icon: "assets/img/qr-code.png",
       url: "Tools/qrgen/qrgen.html",
+    },
+    {
+      id: "passgen",
+      name: "Password Generator",
+      icon: "assets/img/key_padlock-0.png",
+      url: "Tools/passgen/passgen.html",
     },
   ]
 

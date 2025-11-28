@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Password Generator</title>
+  <link rel="stylesheet" href="passgenstyle.css">
+</head>
+<body>
+  <div class="passgen-container">
+    
+    <div class="passgen-panel">
+      <div class="panel-title">Password Configuration</div>
+
+      <div class="input-group">
+        <label for="passwordLength">Password Length:</label>
+        <div class="win95-range-container">
+            <input type="range" id="passwordLength" min="6" max="250" value="16">
+            <input type="number" id="lengthDisplay" min="6" max="250" value="16">
+        </div>
+      </div>
+    </div>
+    
+    <div class="passgen-panel">
+        <div class="panel-title">Character Sets</div>
+        
+        <div class="checkbox-group-wrapper">
+            
+            <label for="includeUppercase" class="checkbox-option">
+                <div class="win95-checkbox-container">
+                    <input type="checkbox" id="includeUppercase" checked>
+                    <span class="win95-checkmark"></span>
+                </div>
+                <span>Uppercase (A-Z)</span>
+            </label>
+            
+            <label for="includeLowercase" class="checkbox-option">
+                <div class="win95-checkbox-container">
+                    <input type="checkbox" id="includeLowercase" checked>
+                    <span class="win95-checkmark"></span>
+                </div>
+                <span>Lowercase (a-z)</span>
+            </label>
+            
+            <label for="includeNumbers" class="checkbox-option">
+                <div class="win95-checkbox-container">
+                    <input type="checkbox" id="includeNumbers" checked>
+                    <span class="win95-checkmark"></span>
+                </div>
+                <span>Numbers (0-9)</span>
+            </label>
+            
+            <label for="includeSymbols" class="checkbox-option">
+                <div class="win95-checkbox-container">
+                    <input type="checkbox" id="includeSymbols" checked>
+                    <span class="win95-checkmark"></span>
+                </div>
+                <span>Standard Symbols</span>
+            </label>
+        </div>
+
+        <div class="input-group">
+            <label for="customSymbols">Custom Symbols:</label>
+            <input type="text" id="customSymbols" placeholder="e.g. &%£€">
+        </div>
+    </div>
+
+    <div class="passgen-panel passgen-panel-grow">
+      <div class="panel-title">Generated Password & Controls</div>
+      
+      <div style="flex: 1; display: flex; flex-direction: column; min-height: 100px;">
+        <textarea id="passwordOutput" class="win95-output" placeholder="Click 'Generate Password' to create a new one." readonly></textarea>
+        
+        <div id="strengthIndicator">
+            <div class="strength-bar-track">
+                <div id="strengthFill" class="strength-fill"></div>
+            </div>
+            <span id="strengthText" class="strength-text">N/A</span>
+        </div>
+      </div>
+
+      <div class="button-group">
+        <button id="generateBtn" class="win95-button">Generate Password</button>
+        <button id="copyBtn" class="win95-button" disabled>Copy</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="passgenscript.js"></script>
+</body>
+</html>
