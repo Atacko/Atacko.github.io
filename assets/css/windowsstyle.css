@@ -40,12 +40,14 @@
     max-width: 800px;
     margin: 0 auto;
     padding: 0 10px;
+    box-sizing: border-box;
   }
   
   .row {
     display: flex;
     flex-wrap: wrap;
     margin: 0 -5px;
+    box-sizing: border-box;
   }
   
   .col-md-4 {
@@ -53,6 +55,35 @@
     padding: 0 5px;
     margin-bottom: 10px;
     box-sizing: border-box;
+    min-width: 0;
+  }
+  
+  .mod-card {
+    background-color: #c0c0c0;
+    border: 2px outset #ffffff;
+    overflow: hidden;
+    margin-bottom: 10px;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+  
+  @media (min-width: 1200px) {
+    .container {
+      max-width: 1200px;
+    }
+    .col-md-4 {
+      width: 25%;
+    }
+  }
+  
+  @media (min-width: 1600px) {
+    .container {
+      max-width: 1600px;
+    }
+    .col-md-4 {
+      width: 20%;
+    }
   }
   
   @media (max-width: 768px) {
@@ -65,13 +96,6 @@
     .col-md-4 {
       width: 100%;
     }
-  }
-  
-  .mod-card {
-    background-color: #c0c0c0;
-    border: 2px outset #ffffff;
-    overflow: hidden;
-    margin-bottom: 10px;
   }
   
   .mod-cover {
