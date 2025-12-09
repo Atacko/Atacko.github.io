@@ -1,12 +1,37 @@
 document.addEventListener("DOMContentLoaded", () => {
+  const wallpapers = [
+    "assets/img/wallpaper.png",
+    "assets/img/wp1.png",
+    //"assets/img/wp2.png",
+    "assets/img/wp3.png",
+    "assets/img/wp4.png",
+    "assets/img/wp5.png",
+    "assets/img/wp6.png",
+    "assets/img/wp7.png",
+    "assets/img/wp8.png",
+    "assets/img/wp9.png",
+    "assets/img/wp10.png",
+    "assets/img/wp11.png",
+    "assets/img/wp12.png",
+    "assets/img/wp13.png",
+    "assets/img/wp14.png",
+  ];
+
+  function getRandomWallpaper() {
+    const randomIndex = Math.floor(Math.random() * wallpapers.length);
+    return wallpapers[randomIndex];
+  }
+
+  const randomWallpaperSrc = getRandomWallpaper();
+
   const wallpaper = new Image()
-  wallpaper.src = "assets/img/wallpaper.png"
+  wallpaper.src = randomWallpaperSrc
   wallpaper.onload = () => {
-    document.getElementById("desktop").style.backgroundImage = "url('assets/img/wallpaper.png')"
+    document.getElementById("desktop").style.backgroundImage = `url('${randomWallpaperSrc}')`
   }
 
   wallpaper.onerror = () => {
-    console.error("Failed to load wallpaper image")
+    console.error("Failed to load wallpaper image: " + randomWallpaperSrc)
     document.getElementById("desktop").style.backgroundColor = "#008080"
   }
 
