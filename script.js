@@ -63,6 +63,12 @@ document.addEventListener("DOMContentLoaded", () => {
         icon: "assets/img/pong.png",
         url: "games/Pong/index.html",
       },
+      {
+        id: "chess",
+        name: "Chess",
+        icon: "assets/img/chess.png",
+        url: "games/Chess/index.html",
+      },
     ]
 
     games.forEach((game) => {
