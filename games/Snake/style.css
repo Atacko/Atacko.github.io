@@ -1,0 +1,83 @@
+body, html {
+  height: 100%;
+  margin: 0;
+  font-family: sans-serif;
+  overflow: hidden;
+}
+
+body {
+  background: #1b1e23;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+#root {
+  position: relative;
+  border: 1px solid #b100fd;
+  background: #1b1e23;
+  border-radius: 5px;
+  box-sizing: border-box;
+}
+
+.score {
+  position: absolute;
+  top: 0;
+  left: 10px;
+  padding-top: 6px;
+  display: flex;
+  color: #00ddff;
+  justify-content: space-between;
+  box-sizing: border-box;
+  height: 30px;
+  width: calc(100% - 20px);
+  border-bottom: 1px solid #00ddff;
+}
+
+.menu {
+  position: absolute;
+  top: calc(50% + 15px);
+  width: 100%;
+  text-align: center;
+  font-size: 0.75em;
+  color: #00ddff;
+  transform: translateY(-50%);
+}
+.menu.hidden {
+  display: none;
+}
+.menu span {
+  color: #b100fd;
+}
+
+.part {
+  background: #00ddff;
+  border-radius: 2px;
+  position: absolute;
+}
+
+@keyframes slide {
+  0% {
+    transform: translateX(-10px);
+  }
+  100% {
+    transform: translateX(0);
+  }
+}
+.food {
+  border: 1px solid #00ddff;
+  border-radius: 3px;
+  position: absolute;
+  transition: 0.05s;
+}
+
+@keyframes grow {
+  0% {
+    width: 0px;
+    height: 0px;
+  }
+  100% {
+    width: 4px;
+    height: 4px;
+  }
+}

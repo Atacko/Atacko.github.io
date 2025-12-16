@@ -75,6 +75,18 @@ document.addEventListener("DOMContentLoaded", () => {
         icon: "assets/img/tiltingmaze.png",
         url: "games/TiltingMaze/index.html",
       },
+      {
+        id: "flappybirb",
+        name: "Flappy Bird",
+        icon: "assets/img/mosciobird.png",
+        url: "games/UccelloMoscio/index.html",
+      },
+      {
+        id: "snek",
+        name: "Snake",
+        icon: "assets/img/snek.png",
+        url: "games/Snake/index.html",
+      },
     ]
 
     games.forEach((game) => {
@@ -418,7 +430,7 @@ function createWindow(id, title, url, icon) {
 
   if (id === "minesweeper") {
     win.style.width = "340px"
-    win.style.height = "380px"
+    win.style.height = "475px"
 
     win.innerHTML = `
       <div class="window-titlebar">
