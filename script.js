@@ -15,6 +15,14 @@ document.addEventListener("DOMContentLoaded", () => {
     "assets/img/wp12.png",
     "assets/img/wp13.png",
     "assets/img/wp14.png",
+    "assets/img/wp15.png",
+    "assets/img/wp16.png",
+    "assets/img/wp17.png",
+    "assets/img/wp18.png",
+    "assets/img/wp19.png",
+    "assets/img/wp20.png",
+    "assets/img/wp21.png",
+    "assets/img/wp22.png",
   ];
 
   function getRandomWallpaper() {
