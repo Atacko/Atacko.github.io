@@ -1,52 +1,51 @@
 class E621Feed {
   constructor() {
     this.currentPage = 1
-    this.currentTags = ""
+    this.currentTags = "female"
     this.isLoading = false
-    this.hasMorePosts = true
     this.posts = []
+    this.seenIds = new Set()
     this.observer = null
-    this.lastPostId = null
 
+    this.currentView = "feed"
     this.isAuthenticated = false
     this.username = null
     this.apiKey = null
-    this.currentView = "feed"
     this.userBlacklist = []
-    this.blacklistLoaded = false
-
     this.userFavorites = new Set()
-    this.favoritesLoaded = false
 
     this.init()
   }
 
+  // ─── Init ──────────────────────────────────────────────────────────────────
+
   init() {
     this.setupEventListeners()
     this.setupInfiniteScroll()
-    this.loadInitialPosts()
     this.checkSavedAuth()
+    this.loadPosts(true)
   }
 
+  // ─── Auth ──────────────────────────────────────────────────────────────────
+
   checkSavedAuth() {
-    const savedAuth = localStorage.getItem("e621_auth")
-    if (savedAuth) {
-      try {
-        const auth = JSON.parse(savedAuth)
-        this.username = auth.username
-        this.apiKey = auth.apiKey
+    try {
+      const saved = localStorage.getItem("e621_auth")
+      if (!saved) return
+      const { username, apiKey } = JSON.parse(saved)
+      if (username && apiKey) {
+        this.username = username
+        this.apiKey = apiKey
         this.isAuthenticated = true
-        console.log("User authenticated as:", this.username)
         this.loadUserBlacklist()
         this.loadUserFavorites()
-      } catch (error) {
-        console.log("Invalid saved auth, clearing")
-        localStorage.removeItem("e621_auth")
       }
+    } catch {
+      localStorage.removeItem("e621_auth")
     }
   }
 
-  async saveAuth(username, apiKey) {
+  saveAuth(username, apiKey) {
     this.username = username
     this.apiKey = apiKey
     this.isAuthenticated = true
@@ -60,752 +59,454 @@ class E621Feed {
     this.apiKey = null
     this.isAuthenticated = false
     this.userBlacklist = []
-    this.blacklistLoaded = false
     this.userFavorites.clear()
-    this.favoritesLoaded = false
     localStorage.removeItem("e621_auth")
     this.showFeed()
   }
 
-  async loadUserBlacklist() {
-    if (!this.isAuthenticated || !this.username || !this.apiKey) {
-      console.log("Not authenticated, skipping blacklist load")
-      return
-    }
+  // ─── Blacklist ─────────────────────────────────────────────────────────────
 
+  loadUserBlacklist() {
+    if (!this.username) return
     try {
-      console.log("Loading blacklist for user:", this.username)
-
-      const savedBlacklist = localStorage.getItem(`e621_blacklist_${this.username}`)
-      if (savedBlacklist) {
-        try {
-          const blacklistData = JSON.parse(savedBlacklist)
-          this.userBlacklist = blacklistData.tags || []
-          this.blacklistLoaded = true
-          console.log("Successfully loaded", this.userBlacklist.length, "blacklisted tags from storage")
-
-          if (this.posts.length > 0) {
-            console.log("Applying blacklist to current posts")
-            this.applyBlacklistToCurrentPosts()
-          }
-          return
-        } catch (error) {
-          console.log("Invalid saved blacklist, will use empty blacklist")
-        }
+      const saved = localStorage.getItem(`e621_blacklist_${this.username}`)
+      if (saved) {
+        const data = JSON.parse(saved)
+        this.userBlacklist = data.tags || []
       }
-
-      console.log("No saved blacklist found, starting with empty blacklist")
+    } catch {
       this.userBlacklist = []
-      this.blacklistLoaded = true
-    } catch (error) {
-      console.error("Error loading user blacklist:", error)
-      this.userBlacklist = []
-      this.blacklistLoaded = true
     }
   }
 
   saveUserBlacklist() {
-    if (!this.isAuthenticated || !this.username) {
-      return
-    }
-
-    const blacklistData = {
-      tags: this.userBlacklist,
-      lastUpdated: new Date().toISOString(),
-    }
-
-    localStorage.setItem(`e621_blacklist_${this.username}`, JSON.stringify(blacklistData))
-    console.log("Saved blacklist with", this.userBlacklist.length, "tags")
+    if (!this.username) return
+    localStorage.setItem(
+      `e621_blacklist_${this.username}`,
+      JSON.stringify({ tags: this.userBlacklist, updated: Date.now() })
+    )
   }
 
-  updateBlacklist(blacklistText) {
-    if (!blacklistText || typeof blacklistText !== "string") {
-      this.userBlacklist = []
-    } else {
-      this.userBlacklist = blacklistText
-        .split(/[\n\r]+/)
-        .map((line) => line.trim())
-        .filter((line) => line.length > 0 && !line.startsWith("#"))
-        .map((line) => line.toLowerCase())
-    }
-
-    this.blacklistLoaded = true
+  updateBlacklist(text) {
+    this.userBlacklist = (text || "")
+      .split(/[\n\r]+/)
+      .map((l) => l.trim().toLowerCase())
+      .filter((l) => l && !l.startsWith("#"))
     this.saveUserBlacklist()
-
-    console.log("Updated blacklist with", this.userBlacklist.length, "tags")
-
-    if (this.posts.length > 0) {
-      this.applyBlacklistToCurrentPosts()
-    }
+    // Hide any currently rendered posts that now match
+    document.querySelectorAll(".post").forEach((el) => {
+      const post = this.posts.find((p) => p.id.toString() === el.dataset.postId)
+      if (post && this.isBlacklisted(post)) el.style.display = "none"
+    })
   }
 
-  parseBlacklistFromHTML(htmlContent) {
-    try {
-      const blacklistRegex = /<textarea[^>]*name=["']user\[blacklisted_tags\]["'][^>]*>([\s\S]*?)<\/textarea>/i
-      const match = htmlContent.match(blacklistRegex)
-
-      if (match && match[1]) {
-        const blacklistText = match[1]
-          .replace(/&lt;/g, "<")
-          .replace(/&gt;/g, ">")
-          .replace(/&amp;/g, "&")
-          .replace(/&quot;/g, '"')
-          .replace(/&#39;/g, "'")
-          .trim()
-
-        console.log("Found blacklist in textarea:", blacklistText.length, "characters")
-        return blacklistText
-      }
-
-      const textareaRegex = /<textarea[^>]*>([\s\S]*?)<\/textarea>/gi
-      let textareaMatch
-      while ((textareaMatch = textareaRegex.exec(htmlContent)) !== null) {
-        const content = textareaMatch[1].trim()
-        if (
-          content.length > 10 &&
-          (content.includes("rating:") || content.includes("species:") || content.includes("_"))
-        ) {
-          console.log("Found potential blacklist in textarea:", content.length, "characters")
-          return content
-            .replace(/&lt;/g, "<")
-            .replace(/&gt;/g, ">")
-            .replace(/&amp;/g, "&")
-            .replace(/&quot;/g, '"')
-            .replace(/&#39;/g, "'")
-        }
-      }
-
-      console.log("No blacklist textarea found in HTML")
-      return ""
-    } catch (error) {
-      console.error("Error parsing blacklist from HTML:", error)
-      return ""
-    }
-  }
-
-  isPostBlacklisted(post) {
-    if (!this.blacklistLoaded || this.userBlacklist.length === 0) {
-      return false
-    }
-
-    const allPostTags = [
+  isBlacklisted(post) {
+    if (!this.userBlacklist.length) return false
+    const tags = [
       ...(post.tags.general || []),
       ...(post.tags.species || []),
       ...(post.tags.character || []),
       ...(post.tags.artist || []),
       ...(post.tags.copyright || []),
       ...(post.tags.meta || []),
-    ].map((tag) => tag.toLowerCase())
-
-    for (const blacklistedTag of this.userBlacklist) {
-      if (allPostTags.includes(blacklistedTag)) {
-        console.log("Post", post.id, "filtered by blacklisted tag:", blacklistedTag)
-        return true
-      }
-    }
-
-    return false
+    ].map((t) => t.toLowerCase())
+    return this.userBlacklist.some((bl) => tags.includes(bl))
   }
 
-  applyBlacklistToCurrentPosts() {
-    const postElements = document.querySelectorAll(".post")
-    let hiddenCount = 0
+  // ─── Favorites ─────────────────────────────────────────────────────────────
 
-    postElements.forEach((postElement) => {
-      const postId = postElement.dataset.postId
-      const post = this.posts.find((p) => p.id.toString() === postId)
-
-      if (post && this.isPostBlacklisted(post)) {
-        postElement.style.display = "none"
-        hiddenCount++
+  loadUserFavorites() {
+    if (!this.username) return
+    try {
+      const saved = localStorage.getItem(`e621_favorites_${this.username}`)
+      if (saved) {
+        const data = JSON.parse(saved)
+        this.userFavorites = new Set(data.favorites || [])
+        this.syncLikeStates()
       }
-    })
-
-    if (hiddenCount > 0) {
-      console.log("Hidden", hiddenCount, "posts due to blacklist")
+    } catch {
+      this.userFavorites = new Set()
     }
   }
 
-  setupEventListeners() {
-    const searchInput = document.getElementById("searchInput")
-    const searchBtn = document.getElementById("searchBtn")
-
-    searchBtn.addEventListener("click", () => this.handleSearch())
-    searchInput.addEventListener("keypress", (e) => {
-      if (e.key === "Enter") {
-        this.handleSearch()
-      }
-    })
-
-    document.querySelectorAll(".nav-btn").forEach((btn) => {
-      btn.addEventListener("click", (e) => this.handleNavigation(e))
-    })
-
-    document.addEventListener("click", (e) => {
-      if (e.target.closest(".engagement-item")) {
-        this.handleEngagement(e)
-      }
-    })
-
-    document.addEventListener("click", (e) => {
-      if (e.target.classList.contains("post-image")) {
-        this.openFullscreenImage(e.target)
-      }
-    })
-  }
-
-  setupInfiniteScroll() {
-    const loadMoreTrigger = document.getElementById("loadMoreTrigger")
-
-    this.observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting && !this.isLoading) {
-            console.log("Infinite scroll triggered")
-            this.loadMorePosts()
-          }
-        })
-      },
-      {
-        rootMargin: "100px",
-      },
+  saveFavorites() {
+    if (!this.username) return
+    localStorage.setItem(
+      `e621_favorites_${this.username}`,
+      JSON.stringify({ favorites: [...this.userFavorites], updated: Date.now() })
     )
-
-    this.observer.observe(loadMoreTrigger)
   }
 
-  async handleSearch() {
-    const searchInput = document.getElementById("searchInput")
-    const tags = searchInput.value.trim()
-
-    if (tags === this.currentTags) return
-
-    this.currentTags = tags
-    this.posts = []
-    this.currentPage = 1
-    this.isLoading = false
-    this.hasMorePosts = true
-
-    const feed = document.getElementById("feed")
-    feed.innerHTML =
-      '<div class="loading-indicator" id="loadingIndicator"><div class="spinner"></div><p>Searching posts...</p></div>'
-
-    if (this.observer) {
-      this.observer.disconnect()
-    }
-
-    await this.loadPosts()
-  }
-
-  async loadInitialPosts() {
-    this.currentTags = "female"
-    this.currentPage = 1
-    await this.loadPosts()
-  }
-
-  async loadMorePosts() {
-    if (this.isLoading) return
-
-    console.log("Loading more posts...")
-    console.log("Current page:", this.currentPage)
-    console.log("Current tags:", this.currentTags)
-
-    if (!this.currentTags) {
-      console.log("No current tags set, using default")
-      this.currentTags = "female"
-    }
-
-    this.currentPage++
-    console.log("Incremented page to:", this.currentPage)
-
-    await this.loadPosts()
-  }
-
-  async loadPosts() {
-    if (this.isLoading) return
-
-    this.isLoading = true
-    this.showLoading()
-
-    try {
-      console.log("Loading posts for tags:", this.currentTags, "page:", this.currentPage)
-
-      const tagsToUse = this.currentTags || "female"
-      console.log("Using tags:", tagsToUse)
-
-      const posts = await this.fetchE621Posts(tagsToUse, this.currentPage)
-
-      console.log("Received posts:", posts.length)
-
-      let filteredPosts = posts
-      if (this.isAuthenticated && this.blacklistLoaded) {
-        const originalCount = posts.length
-        filteredPosts = posts.filter((post) => !this.isPostBlacklisted(post))
-        const filteredCount = originalCount - filteredPosts.length
-        if (filteredCount > 0) {
-          console.log("Filtered out", filteredCount, "posts due to blacklist")
-        }
-      }
-
-      if (filteredPosts.length === 0) {
-        console.log("No posts found for page", this.currentPage)
-
-        if (this.currentPage > 1) {
-          console.log("Resetting to page 1 for endless scroll")
-          this.currentPage = 1
-          const resetPosts = await this.fetchE621Posts(tagsToUse, 1)
-          let resetFilteredPosts = resetPosts
-          if (this.isAuthenticated && this.blacklistLoaded) {
-            resetFilteredPosts = resetPosts.filter((post) => !this.isPostBlacklisted(post))
-          }
-          if (resetFilteredPosts.length > 0) {
-            console.log("Reset successful, got", resetFilteredPosts.length, "posts")
-            this.posts = [...this.posts, ...resetFilteredPosts]
-            this.renderNewPosts(resetFilteredPosts)
-          }
-        }
-      } else {
-        if (this.currentPage === 1 && this.posts.length === 0) {
-          console.log("First page, replacing all posts")
-          this.posts = filteredPosts
-          this.renderPosts()
-        } else {
-          console.log("Additional page, appending", filteredPosts.length, "posts")
-          this.posts = [...this.posts, ...filteredPosts]
-          this.renderNewPosts(filteredPosts)
-        }
-      }
-
-      console.log("Total posts loaded:", this.posts.length)
-    } catch (error) {
-      console.error("Error loading posts:", error)
-      this.showError(error.message)
-    } finally {
-      this.isLoading = false
-      this.hideLoading()
-    }
-  }
-
-  async fetchE621Posts(tags, page = 1) {
-    const baseUrl = "https://e621.net/posts.json"
-    const params = new URLSearchParams({
-      tags: tags || "female",
-      limit: 20,
-      page: page.toString(),
+  syncLikeStates() {
+    document.querySelectorAll('.engagement-item[data-type="like"]').forEach((btn) => {
+      const postId = btn.dataset.postId
+      btn.classList.toggle("liked", this.userFavorites.has(postId))
     })
+  }
 
-    const proxies = [
-      "https://api.allorigins.win/get?url=",
-      "https://cors-anywhere.herokuapp.com/",
-      "https://api.codetabs.com/v1/proxy?quest=",
-    ]
-
-    let lastError = null
-
-    for (let attempt = 0; attempt < 3; attempt++) {
-      for (const proxy of proxies) {
-        try {
-          console.log(`Attempt ${attempt + 1} with proxy: ${proxy}`)
-
-          const targetUrl = baseUrl + "?" + params.toString()
-          let proxyUrl
-
-          if (proxy.includes("allorigins")) {
-            proxyUrl = `${proxy}${encodeURIComponent(targetUrl)}`
-          } else if (proxy.includes("codetabs")) {
-            proxyUrl = `${proxy}${encodeURIComponent(targetUrl)}`
-          } else {
-            proxyUrl = proxy + targetUrl
-          }
-
-          const controller = new AbortController()
-          const timeoutId = setTimeout(() => controller.abort(), 10000)
-
-          const response = await fetch(proxyUrl, {
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            signal: controller.signal,
-          })
-
-          clearTimeout(timeoutId)
-
-          if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`)
-          }
-
-          const data = await response.json()
-          let e621Data
-
-          if (proxy.includes("allorigins")) {
-            e621Data = JSON.parse(data.contents)
-          } else {
-            e621Data = data
-          }
-
-          console.log("API Response received, posts count:", e621Data?.posts?.length || 0)
-
-          if (e621Data && e621Data.posts) {
-            const posts = e621Data.posts
-
-            console.log("Posts available:", posts.length)
-
-            return posts
-              .map((post) => ({
-                id: post.id,
-                file: {
-                  url: post.file?.url,
-                  ext: post.file?.ext || "jpg",
-                },
-                preview: {
-                  url: post.preview?.url,
-                },
-                tags: {
-                  general: post.tags?.general || [],
-                  species: post.tags?.species || [],
-                  character: post.tags?.character || [],
-                  artist: post.tags?.artist || [],
-                },
-                score: {
-                  up: post.score?.up || 0,
-                  down: post.score?.down || 0,
-                  total: post.score?.total || 0,
-                },
-                fav_count: post.fav_count || 0,
-                comment_count: post.comment_count || 0,
-                created_at: post.created_at,
-                rating: post.rating || "s",
-                description: post.description || "",
-                uploader_id: post.uploader_id,
-                uploader_name: post.uploader_name || "Anonymous",
-              }))
-              .filter((post) => post.file.url)
-          } else {
-            throw new Error("Invalid API response format")
-          }
-        } catch (error) {
-          console.error(`Error with proxy ${proxy}:`, error)
-          lastError = error
-
-          if (error.name === "AbortError" || error.message.includes("Failed to fetch")) {
-            continue
-          }
-
-          await new Promise((resolve) => setTimeout(resolve, 1000))
-        }
-      }
-
-      if (attempt < 2) {
-        console.log(`All proxies failed, waiting before retry attempt ${attempt + 2}`)
-        await new Promise((resolve) => setTimeout(resolve, 2000))
-      }
-    }
-
-    console.error("All API attempts failed:", lastError)
-
-    if (lastError?.name === "AbortError") {
-      throw new Error("Request timed out. Please check your internet connection and try again.")
-    } else if (lastError?.message.includes("HTTP error")) {
-      throw new Error("Unable to connect to e621. The service may be temporarily unavailable.")
-    } else if (lastError?.message.includes("Invalid API response")) {
-      throw new Error("Received invalid data from e621. Please try again in a moment.")
-    } else {
-      throw new Error("Unable to load posts from e621. Please try again later.")
+  async addToFavorites(postId) {
+    if (!this.isAuthenticated) return false
+    try {
+      const body = new URLSearchParams({ post_id: postId })
+      const res = await fetch("https://e621.net/favorites.json", {
+        method: "POST",
+        headers: {
+          "User-Agent": `E621Feed/2.0 (by ${this.username} on e621)`,
+          Authorization: "Basic " + btoa(`${this.username}:${this.apiKey}`),
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body,
+      })
+      if (res.status === 401) { this.logout(); return false }
+      return true // 200 or 422 (already fav'd) both count as success
+    } catch {
+      return false
     }
   }
 
-  async fetchUserProfile(userId) {
-    if (!userId) return null
-
+  async removeFromFavorites(postId) {
+    if (!this.isAuthenticated) return false
     try {
-      const userUrl = `https://e621.net/users/${userId}.json`
-      const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(userUrl)}`
-
-      const response = await fetch(proxyUrl, {
-        method: "GET",
+      const res = await fetch(`https://e621.net/favorites/${postId}.json`, {
+        method: "DELETE",
         headers: {
-          "Content-Type": "application/json",
+          "User-Agent": `E621Feed/2.0 (by ${this.username} on e621)`,
+          Authorization: "Basic " + btoa(`${this.username}:${this.apiKey}`),
         },
       })
-
-      if (!response.ok) {
-        return null
-      }
-
-      const data = await response.json()
-      const userData = JSON.parse(data.contents)
-
-      return userData.avatar_id || null
-    } catch (error) {
-      console.log("Could not fetch user profile:", error)
-      return null
+      if (res.status === 401) { this.logout(); return false }
+      return true
+    } catch {
+      return false
     }
   }
 
-  async getProfilePictureUrl(post) {
-    if (!post.uploader_id) {
-      return null
+  // ─── API Fetch ─────────────────────────────────────────────────────────────
+  // cancelSearch() must be called before every new feed fetch so in-flight
+  // requests are dropped immediately, never resolving into the wrong state.
+
+  cancelSearch() {
+    this._searchCtrl?.abort()
+    this._searchCtrl = new AbortController()
+    return this._searchCtrl.signal
+  }
+
+  async fetchE621Posts(tags, page) {
+    // Grab a fresh signal — cancels any previous in-flight feed request
+    const signal = this.cancelSearch()
+
+    const params = new URLSearchParams({ tags: tags || "female", limit: 20, page })
+    const targetUrl = `https://e621.net/posts.json?${params}`
+
+    // Try each proxy in order; move to the next on failure.
+    // allorigins wraps the response in { contents: "..." }, codetabs returns raw JSON.
+    const proxies = [
+      {
+        url: `https://api.allorigins.win/get?url=${encodeURIComponent(targetUrl)}`,
+        parse: async (res) => {
+          const w = await res.json()
+          return JSON.parse(w.contents)
+        },
+      },
+      {
+        url: `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(targetUrl)}`,
+        parse: async (res) => res.json(),
+      },
+    ]
+
+    for (const proxy of proxies) {
+      // Skip if this search was already superseded
+      if (signal.aborted) return []
+
+      try {
+        const timeoutCtrl = new AbortController()
+        const tid = setTimeout(() => timeoutCtrl.abort(), 12000)
+
+        // Merge proxy abort + search-cancel signal
+        const combo = AbortSignal.any
+          ? AbortSignal.any([signal, timeoutCtrl.signal])
+          : timeoutCtrl.signal   // fallback for older browsers
+
+        const res = await fetch(proxy.url, { signal: combo })
+        clearTimeout(tid)
+
+        if (!res.ok) continue
+
+        const json = await proxy.parse(res)
+        if (!json?.posts) continue
+
+        return this.normalizePosts(json.posts)
+      } catch (err) {
+        if (err.name === 'AbortError' && signal.aborted) return []
+        // proxy failed — try next
+      }
+    }
+
+    throw new Error("All proxies failed. Please check your connection and try again.")
+  }
+
+  // Simple timed fetch for non-feed requests (auth checks etc.)
+  timedFetch(url, opts = {}, ms = 10000) {
+    const ctrl = new AbortController()
+    const id = setTimeout(() => ctrl.abort(), ms)
+    return fetch(url, { ...opts, signal: ctrl.signal }).finally(() => clearTimeout(id))
+  }
+
+  normalizePosts(raw) {
+    return raw
+      .filter((p) => p.file?.url) // drop deleted/unavailable posts
+      .map((p) => ({
+        id: p.id,
+        file: { url: p.file.url, ext: p.file.ext || "jpg" },
+        preview: { url: p.preview?.url },
+        tags: {
+          general: p.tags?.general || [],
+          species: p.tags?.species || [],
+          character: p.tags?.character || [],
+          artist: p.tags?.artist || [],
+          copyright: p.tags?.copyright || [],
+          meta: p.tags?.meta || [],
+        },
+        score: { up: p.score?.up || 0, down: p.score?.down || 0, total: p.score?.total || 0 },
+        fav_count: p.fav_count || 0,
+        comment_count: p.comment_count || 0,
+        created_at: p.created_at,
+        rating: p.rating || "s",
+        description: p.description || "",
+        uploader_name: p.uploader_name || "Anonymous",
+      }))
+  }
+
+  // ─── Loading / Rendering ───────────────────────────────────────────────────
+
+  async loadPosts(reset = false) {
+    if (reset) {
+      // Cancel any in-flight request immediately, don't wait for isLoading
+      this.cancelSearch()
+      this.isLoading = false
+    }
+    if (this.isLoading) return
+    this.isLoading = true
+
+    if (reset) {
+      this.currentPage = 1
+      this.posts = []
+      this.seenIds.clear()
+      document.getElementById("feed").innerHTML =
+        '<div class="loading-indicator" id="loadingIndicator"><div class="spinner"></div><p>Loading posts…</p></div>'
+    } else {
+      this.showLoadingMore()
     }
 
     try {
-      const avatarId = await this.fetchUserProfile(post.uploader_id)
-      if (avatarId) {
-        const avatarUrl = `https://e621.net/posts/${avatarId}.json`
-        const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(avatarUrl)}`
+      const fresh = await this.fetchE621Posts(this.currentTags, this.currentPage)
 
-        const response = await fetch(proxyUrl)
-        if (response.ok) {
-          const data = await response.json()
-          const avatarData = JSON.parse(data.contents)
-          return avatarData.post?.preview?.url || null
-        }
-      }
-    } catch (error) {
-      console.log("Could not fetch avatar:", error)
-    }
+      // Deduplicate — prevents duplicate cards on repeat pages
+      const newPosts = fresh.filter((p) => {
+        if (this.seenIds.has(p.id)) return false
+        this.seenIds.add(p.id)
+        return true
+      })
 
-    return null
-  }
+      // Filter blacklist
+      const visible = newPosts.filter((p) => !this.isBlacklisted(p))
 
-  renderNewPosts(newPosts) {
-    const feed = document.getElementById("feed")
-    let loadMoreTrigger = document.getElementById("loadMoreTrigger")
+      this.posts.push(...newPosts)
+      this.appendPosts(visible, reset)
 
-    console.log("Rendering", newPosts.length, "new posts")
-
-    newPosts.forEach((post, index) => {
-      const postElement = this.createPostElement(post)
-      postElement.classList.add("post-enter")
-      postElement.style.animationDelay = `${index * 0.1}s`
-
-      if (loadMoreTrigger) {
-        feed.insertBefore(postElement, loadMoreTrigger)
+      if (fresh.length === 0) {
+        this.currentPage = 1
+        this.seenIds.clear()
       } else {
-        feed.appendChild(postElement)
+        this.currentPage++
       }
-    })
-
-    if (this.isAuthenticated && this.favoritesLoaded) {
-      this.syncLikeStatesForCurrentPosts()
-    }
-
-    if (!loadMoreTrigger) {
-      loadMoreTrigger = document.createElement("div")
-      loadMoreTrigger.id = "loadMoreTrigger"
-      loadMoreTrigger.style.height = "20px"
-      loadMoreTrigger.style.visibility = "hidden"
-      feed.appendChild(loadMoreTrigger)
-
-      if (this.observer) {
-        this.observer.observe(loadMoreTrigger)
-      }
-    } else {
-      feed.appendChild(loadMoreTrigger)
+    } catch (err) {
+      if (err.name !== 'AbortError') this.showError(err.message)
+    } finally {
+      this.isLoading = false
+      this.hideLoadingMore()
     }
   }
 
-  renderPosts() {
+  appendPosts(posts, isReset) {
     const feed = document.getElementById("feed")
 
-    if (this.currentPage === 1) {
-      feed.innerHTML = ""
-    }
+    if (isReset) feed.innerHTML = ""
 
-    const existingPostCount = feed.querySelectorAll(".post").length
-    const newPosts = this.posts.slice(existingPostCount)
-
-    console.log("Rendering", newPosts.length, "new posts")
-
-    newPosts.forEach((post, index) => {
-      const postElement = this.createPostElement(post)
-      postElement.classList.add("post-enter")
-      postElement.style.animationDelay = `${index * 0.1}s`
-      feed.appendChild(postElement)
+    const frag = document.createDocumentFragment()
+    posts.forEach((post, i) => {
+      const el = this.createPostElement(post)
+      el.style.animationDelay = `${Math.min(i * 0.04, 0.3)}s`
+      el.classList.add("post-enter")
+      frag.appendChild(el)
     })
+    feed.appendChild(frag)
 
-    if (this.isAuthenticated && this.favoritesLoaded) {
-      this.syncLikeStatesForCurrentPosts()
+    let trigger = document.getElementById("loadMoreTrigger")
+    if (!trigger) {
+      trigger = document.createElement("div")
+      trigger.id = "loadMoreTrigger"
+      trigger.className = "load-more-trigger"
     }
+    feed.appendChild(trigger)
+    this.observer?.observe(trigger)
 
-    let loadMoreTrigger = document.getElementById("loadMoreTrigger")
-    if (!loadMoreTrigger) {
-      loadMoreTrigger = document.createElement("div")
-      loadMoreTrigger.id = "loadMoreTrigger"
-      loadMoreTrigger.style.height = "20px"
-      loadMoreTrigger.style.visibility = "hidden"
-    }
-    feed.appendChild(loadMoreTrigger)
-
-    if (this.observer) {
-      this.observer.disconnect()
-      this.observer.observe(loadMoreTrigger)
-      console.log("Observer reconnected to trigger element")
-    }
+    if (this.isAuthenticated) this.syncLikeStates()
   }
 
   createPostElement(post) {
-    const postDiv = document.createElement("div")
-    postDiv.className = "post"
-    postDiv.dataset.postId = post.id
+    const el = document.createElement("div")
+    el.className = "post"
+    el.dataset.postId = post.id
 
-    const allTags = [
+    const tags = [
       ...post.tags.general.slice(0, 4),
       ...post.tags.species.slice(0, 2),
       ...post.tags.character.slice(0, 2),
     ].slice(0, 8)
 
-    const timeAgo = this.getTimeAgo(new Date(post.created_at))
-    const rating = this.getRatingText(post.rating)
-
-    const artistName = post.tags.artist.length > 0 ? post.tags.artist[0].replace(/_/g, " ") : `Artist_${post.id}`
-
-    const postText =
-      post.description && post.description.trim()
-        ? post.description.trim()
-        : `Post #${post.id}${post.tags.species.length > 0 ? ` - ${post.tags.species.join(", ")}` : ""}`
-
-    const profileImageHtml = `
-      <div class="profile-pic">
-        <svg viewBox="0 0 24 24" fill="currentColor">
-          <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
-        </svg>
-      </div>
-    `
-
+    const artistName = post.tags.artist[0]?.replace(/_/g, " ") || `Artist_${post.id}`
+    const timeAgo = this.getTimeAgo(post.created_at)
+    const rating = { s: "Safe", q: "Questionable", e: "Explicit" }[post.rating] || "Safe"
     const isVideo = post.file.ext === "webm" || post.file.ext === "mp4"
-    const mediaElement = isVideo
-      ? `<video src="${post.file.url}" class="post-image" loading="lazy" controls loop muted preload="metadata"></video>`
-      : `<img src="${post.file.url}" alt="Post image" class="post-image" loading="lazy">`
 
-    postDiv.innerHTML = `
+    const media = isVideo
+      ? `<video src="${post.file.url}" class="post-image" controls loop muted preload="metadata" playsinline></video>`
+      : `<img
+           src="${post.file.url}"
+           alt="Post #${post.id}"
+           class="post-image"
+           loading="lazy"
+           decoding="async"
+         >`
+
+    const postText = post.description?.trim() || `Post #${post.id}`
+    const tagLinks = tags
+      .map(
+        (t) =>
+          `<a href="#" class="tag" data-tag="${t}">#${t.replace(/_/g, " ")}</a>`
+      )
+      .join("")
+
+    el.innerHTML = `
       <div class="post-header">
-        ${profileImageHtml}
+        <div class="profile-pic">
+          <svg viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+          </svg>
+        </div>
         <div class="post-info">
           <div class="user-info">
-            <span class="username">${artistName}</span>
-            <span class="user-handle">@${artistName.toLowerCase().replace(/\s+/g, "")}</span>
+            <span class="username">${this.esc(artistName)}</span>
+            <span class="user-handle">@${this.esc(artistName.toLowerCase().replace(/\s+/g, ""))}</span>
             <span class="post-time">${timeAgo}</span>
           </div>
         </div>
       </div>
-      
+
       <div class="post-content">
-        <div class="post-text">${postText}</div>
-        
-        <div class="post-tags">
-          ${allTags.map((tag) => `<a href="#" class="tag" data-tag="${tag}" onclick="event.preventDefault(); document.getElementById('searchInput').value='${tag}'; document.getElementById('searchBtn').click();">#${tag.replace(/_/g, " ")}</a>`).join("")}
-        </div>
-        
+        <div class="post-text">${this.esc(postText).slice(0, 280)}</div>
+        <div class="post-tags">${tagLinks}</div>
         <div class="post-media">
-          ${mediaElement}
-          <div class="image-overlay">
-            <span class="rating-badge">${rating}</span>
-          </div>
+          ${media}
+          <div class="image-overlay"><span class="rating-badge">${rating}</span></div>
         </div>
       </div>
-      
+
       <div class="engagement-bar">
         <div class="engagement-item" data-type="reply">
-          <svg class="engagement-icon" viewBox="0 0 24 24">
-            <path d="M1.751 10c0-4.42 3.584-8 8.005-8h4.366c4.49 0 8.129 3.64 8.129 8.13 0 2.96-1.607 5.68-4.196 7.11l-8.054 4.46v-3.69h-.067c-4.49.1-8.183-3.51-8.183-8.01zm8.005-6c-3.317 0-6.005 2.69-6.005 6 0 3.37 2.77 6.08 6.138 6.01l.351-.01h1.761v2.3l5.087-2.81c1.951-1.08 3.163-3.13 3.163-5.36 0-3.39-2.744-6.13-6.129-6.13H9.756z"/>
-          </svg>
+          <svg class="engagement-icon" viewBox="0 0 24 24"><path d="M1.751 10c0-4.42 3.584-8 8.005-8h4.366c4.49 0 8.129 3.64 8.129 8.13 0 2.96-1.607 5.68-4.196 7.11l-8.054 4.46v-3.69h-.067c-4.49.1-8.183-3.51-8.183-8.01zm8.005-6c-3.317 0-6.005 2.69-6.005 6 0 3.37 2.77 6.08 6.138 6.01l.351-.01h1.761v2.3l5.087-2.81c1.951-1.08 3.163-3.13 3.163-5.36 0-3.39-2.744-6.13-6.129-6.13H9.756z"/></svg>
           <span>${post.comment_count}</span>
         </div>
-        
         <div class="engagement-item" data-type="retweet">
-          <svg class="engagement-icon" viewBox="0 0 24 24">
-            <path d="M4.5 3.88l4.432 4.14-1.364 1.46L5.5 7.55V16c0 1.1.896 2 2 2H13v2H7.5c-2.209 0-4-1.79-4-4V7.55L1.432 9.48.068 8.02 4.5 3.88zM16.5 6H11V4h5.5c2.209 0 4 1.79 4 4v8.45l2.068-1.93 1.364 1.46-4.432 4.14-4.432-4.14 1.364-1.46L18.5 16.45V8c0-1.1-.896-2-2-2z"/>
-          </svg>
-          <span>${Math.floor(post.score.total * 0.1) || 0}</span>
+          <svg class="engagement-icon" viewBox="0 0 24 24"><path d="M4.5 3.88l4.432 4.14-1.364 1.46L5.5 7.55V16c0 1.1.896 2 2 2H13v2H7.5c-2.209 0-4-1.79-4-4V7.55L1.432 9.48.068 8.02 4.5 3.88zM16.5 6H11V4h5.5c2.209 0 4 1.79 4 4v8.45l2.068-1.93 1.364 1.46-4.432 4.14-4.432-4.14 1.364-1.46L18.5 16.45V8c0-1.1-.896-2-2-2z"/></svg>
+          <span>${Math.max(0, Math.floor(post.score.total * 0.1))}</span>
         </div>
-        
         <div class="engagement-item" data-type="like" data-post-id="${post.id}">
-          <svg class="engagement-icon" viewBox="0 0 24 24">
-            <path d="M12 21.638h-.014C9.403 21.59 1.95 14.856 1.95 8.478c0-3.064 2.525-5.754 5.403-5.754 2.29 0 3.83 1.58 4.646 2.73.814-1.148 2.354-2.73 4.645-2.73 2.88 0 5.404 2.69 5.404 5.755 0 6.376-7.454 13.11-10.037 13.157H12zM7.354 4.225c-2.08 0-3.903 1.988-3.903 4.255 0 5.74 7.034 11.596 8.55 11.658 1.518-.062 8.55-5.917 8.55-11.658 0-2.267-1.823-4.255-3.903-4.255-2.528 0-3.94 2.936-3.952 2.965-.23.562-1.156.562-1.387 0-.014-.03-1.425-2.965-3.955-2.965z"/>
-          </svg>
+          <svg class="engagement-icon" viewBox="0 0 24 24"><path d="M12 21.638h-.014C9.403 21.59 1.95 14.856 1.95 8.478c0-3.064 2.525-5.754 5.403-5.754 2.29 0 3.83 1.58 4.646 2.73.814-1.148 2.354-2.73 4.645-2.73 2.88 0 5.404 2.69 5.404 5.755 0 6.376-7.454 13.11-10.037 13.157H12zM7.354 4.225c-2.08 0-3.903 1.988-3.903 4.255 0 5.74 7.034 11.596 8.55 11.658 1.518-.062 8.55-5.917 8.55-11.658 0-2.267-1.823-4.255-3.903-4.255-2.528 0-3.94 2.936-3.952 2.965-.23.562-1.156.562-1.387 0-.014-.03-1.425-2.965-3.955-2.965z"/></svg>
           <span>${post.fav_count}</span>
         </div>
-        
         <div class="engagement-item" data-type="views">
-          <svg class="engagement-icon" viewBox="0 0 24 24">
-            <path d="M8.75 21V3h2v18h-2zM18 21V8.5h2V21h-2zM4 21l.004-10H6v10H4zm9.248 0v-7h2v7h-2z"/>
-          </svg>
-          <span>${this.formatNumber((post.score.up || 0) * 10)}</span>
+          <svg class="engagement-icon" viewBox="0 0 24 24"><path d="M8.75 21V3h2v18h-2zM18 21V8.5h2V21h-2zM4 21l.004-10H6v10H4zm9.248 0v-7h2v7h-2z"/></svg>
+          <span>${this.fmt((post.score.up || 0) * 10)}</span>
         </div>
-        
-        <div class="engagement-item" data-type="share">
-          <svg class="engagement-icon" viewBox="0 0 24 24">
-            <path d="M17.53 7.47l-5-5c-.293-.293-.768-.293-1.06 0l-5 5c-.294.293-.294.768 0 1.06s.767.294 1.06 0L11 5.06V15c0 .553.447 1 1 1s1-.447 1-1V5.06l3.47 3.47c.293.293.767.293 1.06 0s.293-.767 0-1.06zM19.708 21.944H4.292C3.028 21.944 2 20.916 2 19.652V14c0-.553.447-1 1-1s1 .447 1 1v5.652c0 .437.377.792.708.792h15.584c.331 0 .708-.355.708-.792V14c0-.553.447-1 1-1s1 .447 1 1v5.652c0 1.264-1.028 2.292-2.292 2.292z"/>
-          </svg>
+        <div class="engagement-item" data-type="share" data-post-id="${post.id}">
+          <svg class="engagement-icon" viewBox="0 0 24 24"><path d="M17.53 7.47l-5-5c-.293-.293-.768-.293-1.06 0l-5 5c-.294.293-.294.768 0 1.06s.767.294 1.06 0L11 5.06V15c0 .553.447 1 1 1s1-.447 1-1V5.06l3.47 3.47c.293.293.767.293 1.06 0s.293-.767 0-1.06zM19.708 21.944H4.292C3.028 21.944 2 20.916 2 19.652V14c0-.553.447-1 1-1s1 .447 1 1v5.652c0 .437.377.792.708.792h15.584c.331 0 .708-.355.708-.792V14c0-.553.447-1 1-1s1 .447 1 1v5.652c0 1.264-1.028 2.292-2.292 2.292z"/></svg>
         </div>
       </div>
     `
 
-    return postDiv
+    return el
   }
 
-  async loadProfilePicture(postElement, post) {
-    const profilePicElement = postElement.querySelector(".profile-pic")
-    if (!profilePicElement || !post.uploader_id) return
+  // ─── Infinite Scroll ───────────────────────────────────────────────────────
 
-    try {
-      const avatarUrl = await this.getProfilePictureUrl(post)
-      if (avatarUrl) {
-        profilePicElement.innerHTML = `<img src="${avatarUrl}" alt="Profile" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">`
+  setupInfiniteScroll() {
+    this.observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && !this.isLoading) {
+          this.loadPosts(false)
+        }
+      },
+      { rootMargin: "200px" }
+    )
+  }
+
+  // ─── Event Listeners ───────────────────────────────────────────────────────
+
+  setupEventListeners() {
+    const input = document.getElementById("searchInput")
+    const btn = document.getElementById("searchBtn")
+
+    const doSearch = () => {
+      const tags = input.value.trim()
+      if (tags === this.currentTags && this.currentView === "feed") return
+      this.currentTags = tags || "female"
+      this.showFeed()
+      this.loadPosts(true)
+    }
+
+    btn.addEventListener("click", doSearch)
+    input.addEventListener("keydown", (e) => e.key === "Enter" && doSearch())
+
+    document.querySelectorAll(".nav-btn").forEach((b) =>
+      b.addEventListener("click", (e) => this.handleNavigation(e))
+    )
+
+    // Single delegated listener for the whole feed
+    document.getElementById("feed").addEventListener("click", (e) => {
+      const tag = e.target.closest(".tag")
+      if (tag) {
+        e.preventDefault()
+        const t = tag.dataset.tag
+        document.getElementById("searchInput").value = t
+        this.currentTags = t
+        this.loadPosts(true)
+        return
       }
-    } catch (error) {
-      console.log("Error loading profile picture:", error)
-    }
+
+      const engagement = e.target.closest(".engagement-item")
+      if (engagement) { this.handleEngagement(engagement); return }
+
+      const img = e.target.closest(".post-image")
+      if (img && img.tagName === "IMG") { this.openFullscreen(img); return }
+    })
   }
 
-  getRatingText(rating) {
-    switch (rating) {
-      case "s":
-        return "Safe"
-      case "q":
-        return "Questionable"
-      case "e":
-        return "Explicit"
-      default:
-        return "Safe"
-    }
-  }
+  // ─── Engagement ───────────────────────────────────────────────────────────
 
-  getTimeAgo(date) {
-    const now = new Date()
-    const diffInSeconds = Math.floor((now - date) / 1000)
-
-    if (diffInSeconds < 60) return `${diffInSeconds}s`
-    if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m`
-    if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h`
-    return `${Math.floor(diffInSeconds / 86400)}d`
-  }
-
-  formatNumber(num) {
-    if (num >= 1000000) return (num / 1000000).toFixed(1) + "M"
-    if (num >= 1000) return (num / 1000).toFixed(1) + "K"
-    return num.toString()
-  }
-
-  async handleEngagement(e) {
-    const item = e.target.closest(".engagement-item")
+  async handleEngagement(item) {
     const type = item.dataset.type
-    const countElement = item.querySelector("span")
-
-    if (!countElement) return
-
-    const currentCount = Number.parseInt(countElement.textContent.replace(/[KM]/, "")) || 0
+    const span = item.querySelector("span")
+    const count = parseInt(span?.textContent?.replace(/[KM]/, "") || "0") || 0
 
     switch (type) {
       case "like":
-        await this.toggleLike(item, countElement, currentCount)
+        await this.toggleLike(item, span, count)
         break
       case "retweet":
-        this.toggleRetweet(item, countElement, currentCount)
-        break
-      case "reply":
-        this.handleReply(item)
+        item.classList.toggle("retweeted")
+        if (span) span.textContent = this.fmt(item.classList.contains("retweeted") ? count + 1 : count - 1)
         break
       case "share":
         this.handleShare(item)
@@ -813,527 +514,293 @@ class E621Feed {
     }
   }
 
-  async toggleLike(item, countElement, currentCount) {
-    const postId = item.dataset.postId
-    const isLiked = item.classList.contains("liked")
-
+  async toggleLike(item, span, count) {
     if (!this.isAuthenticated) {
-      alert("Please log in to add favorites")
       this.showLogin()
       return
     }
 
+    const postId = item.dataset.postId
+    const isLiked = item.classList.contains("liked")
+
+    item.classList.toggle("liked")
+    if (span) span.textContent = this.fmt(isLiked ? count - 1 : count + 1)
+
+    const ok = isLiked ? await this.removeFromFavorites(postId) : await this.addToFavorites(postId)
+
+    if (!ok) {
+      item.classList.toggle("liked")
+      if (span) span.textContent = this.fmt(count)
+      return
+    }
+
     if (isLiked) {
-      const success = await this.removeFromFavorites(postId)
-      if (success) {
-        item.classList.remove("liked")
-        countElement.textContent = this.formatNumber(currentCount - 1)
-        this.userFavorites.delete(postId)
-        this.updateFavoritesCache()
-      } else {
-        alert("Failed to remove from favorites. Please check your login credentials.")
-      }
+      this.userFavorites.delete(postId)
     } else {
-      const success = await this.addToFavorites(postId)
-      if (success) {
-        item.classList.add("liked")
-        countElement.textContent = this.formatNumber(currentCount + 1)
-        this.createHeartAnimation(item)
-        this.userFavorites.add(postId)
-        this.updateFavoritesCache()
-      } else {
-        alert("Failed to add to favorites. Please check your login credentials.")
-      }
+      this.userFavorites.add(postId)
+      this.heartBurst(item)
     }
-  }
-
-  toggleRetweet(item, countElement, currentCount) {
-    const isRetweeted = item.classList.contains("retweeted")
-
-    if (isRetweeted) {
-      item.classList.remove("retweeted")
-      countElement.textContent = this.formatNumber(currentCount - 1)
-    } else {
-      item.classList.add("retweeted")
-      countElement.textContent = this.formatNumber(currentCount + 1)
-    }
-  }
-
-  handleReply(item) {
-    item.style.transform = "scale(0.95)"
-    setTimeout(() => {
-      item.style.transform = "scale(1)"
-    }, 150)
+    this.saveFavorites()
   }
 
   handleShare(item) {
-    item.style.transform = "scale(0.95)"
-    setTimeout(() => {
-      item.style.transform = "scale(1)"
-    }, 150)
-
+    const postId = item.dataset.postId
+    const url = `https://e621.net/posts/${postId}`
     if (navigator.share) {
-      navigator.share({
-        title: "E621 Post",
-        text: "Check out this artwork!",
-        url: window.location.href,
+      navigator.share({ title: "e621 Post", url })
+    } else {
+      navigator.clipboard?.writeText(url).then(() => {
+        item.style.color = "var(--accent-green)"
+        setTimeout(() => (item.style.color = ""), 1200)
       })
     }
   }
 
-  createHeartAnimation(element) {
+  heartBurst(element) {
     const rect = element.getBoundingClientRect()
-    const centerX = rect.left + rect.width / 2
-    const centerY = rect.top + rect.height / 2
-
+    const cx = rect.left + rect.width / 2
+    const cy = rect.top + rect.height / 2
     for (let i = 0; i < 6; i++) {
-      const heart = document.createElement("div")
-      heart.innerHTML = "♥"
-      heart.style.cssText = `
-        position: fixed;
-        left: ${centerX}px;
-        top: ${centerY}px;
-        color: #f91880;
-        font-size: 12px;
-        pointer-events: none;
-        z-index: 9999;
-        transition: all 0.6s ease-out;
-      `
-
-      document.body.appendChild(heart)
-
-      setTimeout(() => {
-        const angle = i * 60 * (Math.PI / 180)
-        const distance = 30 + Math.random() * 20
-        const x = Math.cos(angle) * distance
-        const y = Math.sin(angle) * distance
-
-        heart.style.transform = `translate(${x}px, ${y}px)`
-        heart.style.opacity = "0"
-      }, 10)
-
-      setTimeout(() => {
-        document.body.removeChild(heart)
-      }, 600)
+      const h = document.createElement("div")
+      h.textContent = "♥"
+      h.style.cssText = `position:fixed;left:${cx}px;top:${cy}px;color:#f91880;font-size:12px;pointer-events:none;z-index:9999;transition:all .6s ease-out;`
+      document.body.appendChild(h)
+      requestAnimationFrame(() => {
+        const angle = (i * 60 * Math.PI) / 180
+        const d = 30 + Math.random() * 20
+        h.style.transform = `translate(${Math.cos(angle) * d}px,${Math.sin(angle) * d}px)`
+        h.style.opacity = "0"
+      })
+      setTimeout(() => h.remove(), 650)
     }
   }
 
+  // ─── Fullscreen ────────────────────────────────────────────────────────────
+
+  openFullscreen(img) {
+    const modal = document.createElement("div")
+    modal.className = "fullscreen-modal"
+
+    const full = document.createElement("img")
+    full.className = "fullscreen-image"
+    full.src = img.dataset.full || img.src
+    full.alt = img.alt
+
+    const closeBtn = document.createElement("button")
+    closeBtn.className = "fullscreen-close"
+    closeBtn.textContent = "×"
+
+    modal.append(full, closeBtn)
+    document.body.appendChild(modal)
+
+    const close = () => modal.remove()
+    closeBtn.addEventListener("click", (e) => { e.stopPropagation(); close() })
+    modal.addEventListener("click", (e) => { if (e.target === modal) close() })
+
+    const onKey = (e) => { if (e.key === "Escape") { close(); document.removeEventListener("keydown", onKey) } }
+    document.addEventListener("keydown", onKey)
+    modal.addEventListener("remove", () => document.removeEventListener("keydown", onKey))
+  }
+
+  // ─── Navigation ────────────────────────────────────────────────────────────
+
   handleNavigation(e) {
-    const navType = e.currentTarget.dataset.nav
-
-    document.querySelectorAll(".nav-btn").forEach((btn) => {
-      btn.classList.remove("active")
-    })
-
+    document.querySelectorAll(".nav-btn").forEach((b) => b.classList.remove("active"))
     e.currentTarget.classList.add("active")
-
-    e.currentTarget.style.transform = "scale(0.9)"
-    setTimeout(() => {
-      if (e.currentTarget) {
-        e.currentTarget.style.transform = "scale(1)"
-      }
-    }, 150)
-
-    if (navType === "profile") {
-      if (this.isAuthenticated) {
-        this.showProfile()
-      } else {
-        this.showLogin()
-      }
-    } else if (navType === "home") {
+    const nav = e.currentTarget.dataset.nav
+    if (nav === "profile") {
+      this.isAuthenticated ? this.showProfile() : this.showLogin()
+    } else {
+      this.currentTags = "female"
+      document.getElementById("searchInput").value = ""
       this.showFeed()
+      this.loadPosts(true)
     }
   }
 
   showFeed() {
     this.currentView = "feed"
-    const feed = document.getElementById("feed")
-    const container = document.querySelector(".app-container")
-
-    const existingForms = container.querySelectorAll(".login-form, .profile-section")
-    existingForms.forEach((form) => form.remove())
-
-    feed.style.display = "block"
+    document.querySelector(".app-container")
+      .querySelectorAll(".login-form, .profile-section")
+      .forEach((el) => el.remove())
+    document.getElementById("feed").style.display = ""
+    document.querySelector('.nav-btn[data-nav="home"]').classList.add("active")
+    document.querySelector('.nav-btn[data-nav="profile"]').classList.remove("active")
   }
 
   showLogin() {
     this.currentView = "login"
-    const feed = document.getElementById("feed")
-    const container = document.querySelector(".app-container")
+    document.getElementById("feed").style.display = "none"
+    document.querySelector(".app-container")
+      .querySelectorAll(".login-form, .profile-section")
+      .forEach((el) => el.remove())
 
-    feed.style.display = "none"
-
-    const existingForms = container.querySelectorAll(".login-form, .profile-section")
-    existingForms.forEach((form) => form.remove())
-
-    const loginForm = document.createElement("div")
-    loginForm.className = "login-form"
-    loginForm.innerHTML = `
+    const div = document.createElement("div")
+    div.className = "login-form"
+    div.innerHTML = `
       <div class="login-container">
         <h2>Login to e621</h2>
-        <p>Enter your e621 username and API key to enable favorites and other features.</p>
-        <form id="loginForm">
-          <div class="form-group">
-            <label for="username">Username:</label>
-            <input type="text" id="username" name="username" required>
-          </div>
-          <div class="form-group">
-            <label for="apiKey">API Key:</label>
-            <input type="password" id="apiKey" name="apiKey" required>
-            <small>You can get your API key from your <a href="https://e621.net/users/settings" target="_blank">e621 account settings</a></small>
-          </div>
-          <button type="submit">Login</button>
-          <button type="button" id="cancelLogin">Cancel</button>
-        </form>
+        <p>Enter your username and API key to enable favorites and blacklist syncing.</p>
+        <div class="form-group">
+          <label>Username</label>
+          <input type="text" id="loginUser" autocomplete="username">
+        </div>
+        <div class="form-group">
+          <label>API Key</label>
+          <input type="password" id="loginKey" autocomplete="current-password">
+          <small>Find your API key in <a href="https://e621.net/users/settings" target="_blank">Account Settings</a></small>
+        </div>
+        <div id="loginError" style="color:var(--accent-red);font-size:13px;margin-bottom:12px;display:none;"></div>
+        <button id="loginSubmit" class="profile-btn">Login</button>
+        <button id="loginCancel" class="profile-btn secondary" style="margin-top:8px">Cancel</button>
       </div>
     `
+    document.querySelector(".app-container").appendChild(div)
 
-    container.appendChild(loginForm)
+    document.getElementById("loginSubmit").addEventListener("click", async () => {
+      const username = document.getElementById("loginUser").value.trim()
+      const apiKey = document.getElementById("loginKey").value.trim()
+      const errEl = document.getElementById("loginError")
+      const btn = document.getElementById("loginSubmit")
 
-    document.getElementById("loginForm").addEventListener("submit", async (e) => {
-      e.preventDefault()
-      const username = document.getElementById("username").value
-      const apiKey = document.getElementById("apiKey").value
+      if (!username || !apiKey) { errEl.textContent = "Both fields are required."; errEl.style.display = ""; return }
 
-      const loginBtn = e.target.querySelector('button[type="submit"]')
-      loginBtn.textContent = "Logging in..."
-      loginBtn.disabled = true
+      btn.textContent = "Logging in…"
+      btn.disabled = true
+      errEl.style.display = "none"
 
-      const success = await this.authenticateUser(username, apiKey)
-      if (success) {
-        alert("Login successful!")
+      const ok = await this.authenticateUser(username, apiKey)
+      if (ok) {
         this.showProfile()
       } else {
-        alert("Login failed. Please check your credentials.")
-        loginBtn.textContent = "Login"
-        loginBtn.disabled = false
+        errEl.textContent = "Login failed — check your username and API key."
+        errEl.style.display = ""
+        btn.textContent = "Login"
+        btn.disabled = false
       }
     })
 
-    document.getElementById("cancelLogin").addEventListener("click", () => {
-      this.showFeed()
-    })
+    document.getElementById("loginCancel").addEventListener("click", () => this.showFeed())
+  }
+
+  async authenticateUser(username, apiKey) {
+    try {
+      const res = await this.timedFetch(`https://e621.net/users/${username}.json`, {
+        headers: {
+          "User-Agent": `E621Feed/2.0 (by ${username} on e621)`,
+          Authorization: "Basic " + btoa(`${username}:${apiKey}`),
+        },
+      }, 8000)
+      if (res.status === 401) return false
+      this.saveAuth(username, apiKey)
+      return true
+    } catch {
+      this.saveAuth(username, apiKey)
+      return true
+    }
   }
 
   showProfile() {
     this.currentView = "profile"
-    const feed = document.getElementById("feed")
-    const container = document.querySelector(".app-container")
+    document.getElementById("feed").style.display = "none"
+    document.querySelector(".app-container")
+      .querySelectorAll(".login-form, .profile-section")
+      .forEach((el) => el.remove())
 
-    feed.style.display = "none"
-
-    const existingForms = container.querySelectorAll(".login-form, .profile-section")
-    existingForms.forEach((form) => form.remove())
-
-    const profileSection = document.createElement("div")
-    profileSection.className = "profile-section"
-    profileSection.innerHTML = `
+    const div = document.createElement("div")
+    div.className = "profile-section"
+    div.innerHTML = `
       <div class="profile-container">
         <h2>Profile</h2>
         <div class="profile-info">
-          <p><strong>Username:</strong> ${this.username}</p>
+          <p><strong>Username:</strong> ${this.esc(this.username)}</p>
           <p><strong>Status:</strong> Logged in</p>
-          <p><strong>Blacklist:</strong> ${this.blacklistLoaded ? `${this.userBlacklist.length} tags` : "Loading..."}</p>
+          <p><strong>Blacklist:</strong> <span id="blCount">${this.userBlacklist.length}</span> tags</p>
         </div>
-        
+
         <div class="blacklist-section">
           <h3>Manage Blacklist</h3>
-          <p>Enter tags you want to filter out, one per line:</p>
-          <textarea id="blacklistInput" placeholder="Enter blacklisted tags, one per line...\nExample:\ngore\nscat\nwatersports\nyoung" rows="8" cols="50">${this.userBlacklist.join("\n")}</textarea>
+          <p>One tag per line — these posts will be hidden from your feed.</p>
+          <textarea id="blacklistInput" rows="8">${this.esc(this.userBlacklist.join("\n"))}</textarea>
           <div class="blacklist-actions">
-            <button id="saveBlacklist" class="profile-btn">Save Blacklist</button>
+            <button id="saveBlacklist" class="profile-btn">Save</button>
             <button id="clearBlacklist" class="profile-btn secondary">Clear All</button>
           </div>
         </div>
-        
+
         <div class="profile-actions">
           <button id="viewE621Profile" class="profile-btn">View e621 Profile</button>
-          <button id="logoutBtn" class="profile-btn">Logout</button>
-          <button id="backToFeed" class="profile-btn">Back to Feed</button>
+          <button id="logoutBtn" class="profile-btn" style="background:var(--accent-red)">Logout</button>
+          <button id="backToFeed" class="profile-btn secondary">Back to Feed</button>
         </div>
       </div>
     `
-
-    container.appendChild(profileSection)
+    document.querySelector(".app-container").appendChild(div)
 
     document.getElementById("saveBlacklist").addEventListener("click", () => {
-      const blacklistText = document.getElementById("blacklistInput").value
-      this.updateBlacklist(blacklistText)
-
-      const blacklistInfo = document.querySelector(".profile-info p:nth-child(3)")
-      if (blacklistInfo) {
-        blacklistInfo.innerHTML = `<strong>Blacklist:</strong> ${this.userBlacklist.length} tags`
-      }
-
-      alert(`Blacklist updated! Now filtering ${this.userBlacklist.length} tags.`)
+      this.updateBlacklist(document.getElementById("blacklistInput").value)
+      document.getElementById("blCount").textContent = this.userBlacklist.length
     })
-
     document.getElementById("clearBlacklist").addEventListener("click", () => {
-      if (confirm("Are you sure you want to clear your entire blacklist?")) {
-        document.getElementById("blacklistInput").value = ""
-        this.updateBlacklist("")
-
-        const blacklistInfo = document.querySelector(".profile-info p:nth-child(3)")
-        if (blacklistInfo) {
-          blacklistInfo.innerHTML = `<strong>Blacklist:</strong> 0 tags`
-        }
-
-        alert("Blacklist cleared!")
-      }
+      document.getElementById("blacklistInput").value = ""
+      this.updateBlacklist("")
+      document.getElementById("blCount").textContent = 0
     })
-
-    document.getElementById("viewE621Profile").addEventListener("click", () => {
+    document.getElementById("viewE621Profile").addEventListener("click", () =>
       window.open(`https://e621.net/users/${this.username}`, "_blank")
-    })
-
-    document.getElementById("logoutBtn").addEventListener("click", () => {
-      this.logout()
-    })
-
-    document.getElementById("backToFeed").addEventListener("click", () => {
-      this.showFeed()
-    })
+    )
+    document.getElementById("logoutBtn").addEventListener("click", () => this.logout())
+    document.getElementById("backToFeed").addEventListener("click", () => this.showFeed())
   }
 
-  showLoading() {
-    const existing = document.getElementById("loadingIndicator")
-    if (!existing) {
-      const loading = document.createElement("div")
-      loading.id = "loadingIndicator"
-      loading.className = "loading-indicator"
-      loading.innerHTML = '<div class="spinner"></div><p>Loading more posts...</p>'
-      document.getElementById("feed").appendChild(loading)
-    }
+  // ─── Loading indicators ────────────────────────────────────────────────────
+
+  showLoadingMore() {
+    if (document.getElementById("loadingMore")) return
+    const el = document.createElement("div")
+    el.id = "loadingMore"
+    el.className = "loading-indicator"
+    el.innerHTML = '<div class="spinner"></div><p>Loading more…</p>'
+    document.getElementById("feed").appendChild(el)
   }
 
-  hideLoading() {
-    const loading = document.getElementById("loadingIndicator")
-    if (loading) {
-      loading.remove()
-    }
+  hideLoadingMore() {
+    document.getElementById("loadingMore")?.remove()
   }
 
   showError(message) {
-    const feed = document.getElementById("feed")
-    feed.innerHTML = `
+    document.getElementById("feed").innerHTML = `
       <div class="error-message">
-        <p>${message}</p>
+        <p>⚠️ ${this.esc(message)}</p>
         <button class="retry-btn" onclick="location.reload()">Retry</button>
       </div>
     `
   }
 
-  async addToFavorites(postId) {
-    if (!this.isAuthenticated) {
-      alert("Please log in to add favorites")
-      return false
-    }
+  // ─── Helpers ───────────────────────────────────────────────────────────────
 
-    try {
-      const favoriteUrl = `https://e621.net/favorites.json`
-
-      const formData = new URLSearchParams()
-      formData.append("post_id", postId)
-
-      const response = await fetch(favoriteUrl, {
-        method: "POST",
-        headers: {
-          "User-Agent": "E621Feed/1.0 (by " + this.username + " on e621)",
-          Authorization: "Basic " + btoa(this.username + ":" + this.apiKey),
-          "Content-Type": "application/x-www-form-urlencoded",
-        },
-        body: formData,
-      })
-
-      if (response.ok || response.status === 422) {
-        return true
-      } else if (response.status === 401) {
-        alert("Authentication failed. Please check your login credentials.")
-        this.logout()
-        return false
-      } else {
-        console.error("Favorites API error:", response.status)
-        return true
-      }
-    } catch (error) {
-      console.error("Error adding to favorites:", error)
-      return true
-    }
+  esc(str) {
+    return String(str ?? "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
   }
 
-  async removeFromFavorites(postId) {
-    if (!this.isAuthenticated) {
-      alert("Please log in to manage favorites")
-      return false
-    }
-
-    try {
-      const favoriteUrl = `https://e621.net/favorites/${postId}.json`
-
-      const response = await fetch(favoriteUrl, {
-        method: "DELETE",
-        headers: {
-          "User-Agent": "E621Feed/1.0 (by " + this.username + " on e621)",
-          Authorization: "Basic " + btoa(this.username + ":" + this.apiKey),
-        },
-      })
-
-      if (response.ok || response.status === 404) {
-        return true
-      } else if (response.status === 401) {
-        alert("Authentication failed. Please check your login credentials.")
-        this.logout()
-        return false
-      } else {
-        console.error("Remove favorites API error:", response.status)
-        return true
-      }
-    } catch (error) {
-      console.error("Error removing from favorites:", error)
-      return true
-    }
+  fmt(n) {
+    n = Number(n) || 0
+    if (n >= 1e6) return (n / 1e6).toFixed(1) + "M"
+    if (n >= 1e3) return (n / 1e3).toFixed(1) + "K"
+    return String(n)
   }
 
-  async authenticateUser(username, apiKey) {
-    try {
-      const testUrl = `https://e621.net/users/${username}.json`
-
-      const response = await fetch(testUrl, {
-        method: "GET",
-        headers: {
-          "User-Agent": "E621Feed/1.0 (by " + username + " on e621)",
-          Authorization: "Basic " + btoa(username + ":" + apiKey),
-          "Content-Type": "application/json",
-        },
-      })
-
-      if (response.ok) {
-        await this.saveAuth(username, apiKey)
-        return true
-      } else if (response.status === 401) {
-        console.error("Authentication failed: Invalid credentials")
-        return false
-      } else {
-        console.error("Authentication test failed:", response.status)
-        await this.saveAuth(username, apiKey)
-        return true
-      }
-    } catch (error) {
-      console.error("Authentication error:", error)
-      await this.saveAuth(username, apiKey)
-      return true
-    }
-  }
-
-  async loadUserFavorites() {
-    if (!this.isAuthenticated || !this.username || !this.apiKey) {
-      console.log("Not authenticated, skipping favorites load")
-      return
-    }
-
-    try {
-      console.log("Loading favorites for user:", this.username)
-
-      // Load from local storage only
-      const savedFavorites = localStorage.getItem(`e621_favorites_${this.username}`)
-      if (savedFavorites) {
-        try {
-          const favoritesData = JSON.parse(savedFavorites)
-          this.userFavorites = new Set(favoritesData.favorites || [])
-          this.favoritesLoaded = true
-          console.log("Loaded", this.userFavorites.size, "favorites from local storage")
-          this.syncLikeStatesForCurrentPosts()
-          return
-        } catch (error) {
-          console.log("Invalid saved favorites, starting fresh")
-        }
-      }
-
-      // Start with empty set if no cached favorites
-      console.log("No cached favorites found, starting with empty set")
-      this.userFavorites = new Set()
-      this.favoritesLoaded = true
-      this.syncLikeStatesForCurrentPosts()
-    } catch (error) {
-      console.error("Error loading user favorites:", error)
-      this.userFavorites = new Set()
-      this.favoritesLoaded = true
-    }
-  }
-
-  syncLikeStatesForCurrentPosts() {
-    if (!this.favoritesLoaded) return
-
-    const postElements = document.querySelectorAll(".post")
-    postElements.forEach((postElement) => {
-      const postId = postElement.dataset.postId
-      const likeButton = postElement.querySelector('.engagement-item[data-type="like"]')
-
-      if (likeButton && postId) {
-        if (this.userFavorites.has(postId)) {
-          likeButton.classList.add("liked")
-        } else {
-          likeButton.classList.remove("liked")
-        }
-      }
-    })
-
-    console.log("Synced like states for", postElements.length, "posts")
-  }
-
-  updateFavoritesCache() {
-    if (!this.isAuthenticated || !this.username) return
-
-    const favoritesData = {
-      favorites: Array.from(this.userFavorites),
-      lastUpdated: new Date().toISOString(),
-    }
-    localStorage.setItem(`e621_favorites_${this.username}`, JSON.stringify(favoritesData))
-  }
-
-  openFullscreenImage(imageElement) {
-    const modal = document.createElement("div")
-    modal.className = "fullscreen-modal"
-
-    const fullscreenImg = document.createElement("img")
-    fullscreenImg.className = "fullscreen-image"
-    fullscreenImg.src = imageElement.src
-    fullscreenImg.alt = imageElement.alt
-
-    const closeBtn = document.createElement("button")
-    closeBtn.className = "fullscreen-close"
-    closeBtn.innerHTML = "×"
-
-    modal.appendChild(fullscreenImg)
-    modal.appendChild(closeBtn)
-
-    document.body.appendChild(modal)
-
-    const closeModal = () => {
-      document.body.removeChild(modal)
-    }
-
-    closeBtn.addEventListener("click", (e) => {
-      e.stopPropagation()
-      closeModal()
-    })
-
-    modal.addEventListener("click", (e) => {
-      if (e.target === modal) {
-        closeModal()
-      }
-    })
-
-    const handleEscape = (e) => {
-      if (e.key === "Escape") {
-        closeModal()
-        document.removeEventListener("keydown", handleEscape)
-      }
-    }
-    document.addEventListener("keydown", handleEscape)
+  getTimeAgo(dateStr) {
+    const s = Math.floor((Date.now() - new Date(dateStr)) / 1000)
+    if (s < 60) return `${s}s`
+    if (s < 3600) return `${Math.floor(s / 60)}m`
+    if (s < 86400) return `${Math.floor(s / 3600)}h`
+    return `${Math.floor(s / 86400)}d`
   }
 }
 
-document.addEventListener("DOMContentLoaded", () => {
-  new E621Feed()
-})
+document.addEventListener("DOMContentLoaded", () => new E621Feed())
