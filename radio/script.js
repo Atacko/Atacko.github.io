@@ -39,6 +39,18 @@ const closeStylesBtn = document.getElementById("closeStylesBtn")
 const repeatBtn = document.getElementById("repeatBtn")
 const repeatModal = document.getElementById("repeatModal")
 const closeRepeatBtn = document.getElementById("closeRepeatBtn")
+
+/* temp */
+const offlineModal = document.getElementById("offlineModal")
+const closeOfflineBtn = document.getElementById("closeOfflineBtn")
+
+offlineModal.classList.add("active")
+
+closeOfflineBtn.addEventListener("click", () => {
+  offlineModal.classList.remove("active")
+})
+/* temp */
+
 const eqResetBtn = document.getElementById("eqResetBtn")
 const shuffleBtn = document.getElementById("shuffleBtn")
 const exportEqBtn = document.getElementById("exportEqBtn")
