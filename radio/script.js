@@ -40,7 +40,7 @@ const repeatBtn = document.getElementById("repeatBtn")
 const repeatModal = document.getElementById("repeatModal")
 const closeRepeatBtn = document.getElementById("closeRepeatBtn")
 
-/* temp */
+/* temp 
 const offlineModal = document.getElementById("offlineModal")
 const closeOfflineBtn = document.getElementById("closeOfflineBtn")
 
@@ -49,7 +49,7 @@ offlineModal.classList.add("active")
 closeOfflineBtn.addEventListener("click", () => {
   offlineModal.classList.remove("active")
 })
-/* temp */
+temp */
 
 const eqResetBtn = document.getElementById("eqResetBtn")
 const shuffleBtn = document.getElementById("shuffleBtn")
